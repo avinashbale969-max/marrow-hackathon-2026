@@ -377,6 +377,7 @@ private fun ExplanationScreen(
             onDeleteHighlight = { viewModel.deleteHighlight(it) },
             onDeleteNote      = { viewModel.deleteNote(it) },
             onAddNote         = { text, tag, quote -> viewModel.addNote(text, tag, quote) },
+            onEditNote        = { note, text, tag -> viewModel.updateNote(note, text, tag) },
             onDismiss         = { showNotesSheet = false }
         )
     }

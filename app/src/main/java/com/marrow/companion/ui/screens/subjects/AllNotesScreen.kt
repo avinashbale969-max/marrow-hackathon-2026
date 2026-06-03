@@ -286,16 +286,6 @@ private fun NoteCard(note: NoteWithSubject, showSubject: Boolean) {
         Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)) {
 
-            // Subject name tag (shown in All Subjects view)
-            if (showSubject) {
-                Box(Modifier.clip(RoundedCornerShape(4.dp))
-                    .background(Teal.copy(alpha = 0.12f))
-                    .padding(horizontal = 8.dp, vertical = 2.dp)) {
-                    Text(note.subjectName, fontSize = 11.sp, color = Teal,
-                        fontWeight = FontWeight.SemiBold)
-                }
-            }
-
             note.attachedQuote?.let { quote ->
                 Row(modifier = Modifier.fillMaxWidth()
                     .clip(RoundedCornerShape(6.dp))
@@ -324,6 +314,28 @@ private fun NoteCard(note: NoteWithSubject, showSubject: Boolean) {
                         fontWeight = FontWeight.SemiBold)
                 }
             }
+
+            // Subject • Topic (always show)
+            SubjectTopicLabel(
+                subjectName = note.subjectName,
+                topicName   = note.topicName,
+                color       = Color(0xFF888888)
+            )
+        }
+    }
+}
+
+@Composable
+private fun SubjectTopicLabel(subjectName: String, topicName: String?, color: Color) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(6.dp)
+    ) {
+        Text(subjectName, fontSize = 12.sp, color = color)
+        if (!topicName.isNullOrBlank()) {
+            Box(Modifier.size(6.dp).clip(androidx.compose.foundation.shape.CircleShape)
+                .background(GreenHL))
+            Text(topicName, fontSize = 12.sp, color = color)
         }
     }
 }
@@ -338,17 +350,7 @@ private fun HighlightCard(hl: HighlightWithSubject, showSubject: Boolean) {
         colors = CardDefaults.cardColors(containerColor = bg),
         elevation = CardDefaults.cardElevation(0.dp)) {
         Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
-            verticalArrangement = Arrangement.spacedBy(6.dp)) {
-
-            // Subject name tag
-            if (showSubject) {
-                Box(Modifier.clip(RoundedCornerShape(4.dp))
-                    .background(accent.copy(alpha = 0.2f))
-                    .padding(horizontal = 8.dp, vertical = 2.dp)) {
-                    Text(hl.subjectName, fontSize = 11.sp, color = accent,
-                        fontWeight = FontWeight.SemiBold)
-                }
-            }
+            verticalArrangement = Arrangement.spacedBy(8.dp)) {
 
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 Box(Modifier.width(4.dp).heightIn(min = 16.dp)
@@ -356,6 +358,13 @@ private fun HighlightCard(hl: HighlightWithSubject, showSubject: Boolean) {
                 Text("\"${hl.text}\"", fontSize = 14.sp, lineHeight = 21.sp,
                     color = Color(0xFF333333), modifier = Modifier.weight(1f))
             }
+
+            // Subject • Topic (always show)
+            SubjectTopicLabel(
+                subjectName = hl.subjectName,
+                topicName   = hl.topicName,
+                color       = Color(0xFF888888)
+            )
         }
     }
 }

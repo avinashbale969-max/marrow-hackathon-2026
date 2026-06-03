@@ -57,20 +57,24 @@ interface HighlightDao {
 
     @Query("""
         SELECT h.id as id, h.questionId as questionId, h.text as text,
-               h.color as color, h.createdAt as createdAt, s.name as subjectName
+               h.color as color, h.createdAt as createdAt,
+               s.name as subjectName, t.name as topicName
         FROM highlights h
         INNER JOIN questions q ON h.questionId = q.id
         INNER JOIN subjects s ON q.subjectId = s.id
+        LEFT JOIN topics t ON q.topicId = t.id
         ORDER BY s.name ASC, h.createdAt DESC
     """)
     fun getAllWithSubjectName(): Flow<List<HighlightWithSubject>>
 
     @Query("""
         SELECT h.id as id, h.questionId as questionId, h.text as text,
-               h.color as color, h.createdAt as createdAt, s.name as subjectName
+               h.color as color, h.createdAt as createdAt,
+               s.name as subjectName, t.name as topicName
         FROM highlights h
         INNER JOIN questions q ON h.questionId = q.id
         INNER JOIN subjects s ON q.subjectId = s.id
+        LEFT JOIN topics t ON q.topicId = t.id
         WHERE q.subjectId = :subjectId
         ORDER BY h.createdAt DESC
     """)
@@ -84,5 +88,6 @@ data class HighlightWithSubject(
     val text: String,
     val color: String,
     val createdAt: Long,
-    val subjectName: String
+    val subjectName: String,
+    val topicName: String? = null
 )

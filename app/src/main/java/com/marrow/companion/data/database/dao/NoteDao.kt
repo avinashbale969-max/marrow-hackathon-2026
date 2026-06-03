@@ -69,10 +69,11 @@ interface NoteDao {
     @Query("""
         SELECT n.id as id, n.questionId as questionId, n.text as text,
                n.tag as tag, n.attachedQuote as attachedQuote,
-               n.createdAt as createdAt, s.name as subjectName
+               n.createdAt as createdAt, s.name as subjectName, t.name as topicName
         FROM notes n
         INNER JOIN questions q ON n.questionId = q.id
         INNER JOIN subjects s ON q.subjectId = s.id
+        LEFT JOIN topics t ON q.topicId = t.id
         WHERE n.tag != 'TAG'
         ORDER BY s.name ASC, n.createdAt DESC
     """)
@@ -81,10 +82,11 @@ interface NoteDao {
     @Query("""
         SELECT n.id as id, n.questionId as questionId, n.text as text,
                n.tag as tag, n.attachedQuote as attachedQuote,
-               n.createdAt as createdAt, s.name as subjectName
+               n.createdAt as createdAt, s.name as subjectName, t.name as topicName
         FROM notes n
         INNER JOIN questions q ON n.questionId = q.id
         INNER JOIN subjects s ON q.subjectId = s.id
+        LEFT JOIN topics t ON q.topicId = t.id
         WHERE q.subjectId = :subjectId AND n.tag != 'TAG'
         ORDER BY n.createdAt DESC
     """)
@@ -99,5 +101,6 @@ data class NoteWithSubject(
     val tag: String,
     val attachedQuote: String?,
     val createdAt: Long,
-    val subjectName: String
+    val subjectName: String,
+    val topicName: String? = null
 )

@@ -11,13 +11,16 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.sp
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -38,12 +41,16 @@ import com.marrow.companion.data.database.entities.NoteEntity
 import com.marrow.companion.data.database.entities.NoteTag
 import com.marrow.companion.data.database.entities.QuestionAttemptEntity
 import com.marrow.companion.data.database.entities.QuestionOptionEntity
+import coil.compose.SubcomposeAsyncImage
+import com.marrow.companion.ui.screens.quiz.BookmarkScreenshotEffect
 import com.marrow.companion.ui.screens.quiz.BookmarkTypePopup
-import com.marrow.companion.ui.screens.quiz.ExplanationActionBar
 import com.marrow.companion.ui.screens.quiz.HighlightableText
 import com.marrow.companion.ui.screens.quiz.MyNotesSheet
-import com.marrow.companion.ui.screens.quiz.TranslationSheet
+import com.marrow.companion.ui.screens.quiz.NoteInputDialog
 import com.marrow.companion.ui.screens.quiz.SelectionTranslateSheet
+import com.marrow.companion.ui.screens.quiz.StickyEditDialog
+import com.marrow.companion.ui.screens.quiz.bookmarkColor
+import com.marrow.companion.ui.screens.quiz.bookmarkIcon
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -128,6 +135,12 @@ class QuestionExplanationViewModel @Inject constructor(
         viewModelScope.launch { noteDao.deleteById(note.id) }
     }
 
+    fun updateNote(note: NoteEntity, newText: String, newTag: NoteTag) {
+        viewModelScope.launch { noteDao.update(note.copy(text = newText, tag = newTag.name)) }
+    }
+
+    fun getTagNotes(questionId: Long) = noteDao.getTagsForQuestion(questionId)
+
     fun selectOption(optionId: Long) {
         val qwo = _state.value.qwo ?: return
         if (_state.value.selectedOptionId != null) return
@@ -171,12 +184,20 @@ fun QuestionExplanationScreen(
     viewModel: QuestionExplanationViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
-    var showBookmarkPopup by remember { mutableStateOf(false) }
+
+    var showBookmarkPopup      by remember { mutableStateOf(false) }
+    var screenshotType         by remember { mutableStateOf<String?>(null) }
     var showNotesSheet         by remember { mutableStateOf(false) }
     var showSelectionTranslate by remember { mutableStateOf(false) }
     var selectedTranslateText  by remember { mutableStateOf("") }
+    var pendingTagQuote        by remember { mutableStateOf<String?>(null) }
+    var showTagDialog          by remember { mutableStateOf(false) }
+    var selectionActive        by remember { mutableStateOf(false) }
+    val scrollState             = rememberScrollState()
 
     LaunchedEffect(questionId) { viewModel.load(questionId, initialSelectedId) }
+
+    val tagNotes by viewModel.getTagNotes(questionId).collectAsState(initial = emptyList())
 
     if (showNotesSheet) {
         MyNotesSheet(
@@ -186,6 +207,7 @@ fun QuestionExplanationScreen(
             onDeleteHighlight = { viewModel.deleteHighlight(it) },
             onDeleteNote      = { viewModel.deleteNote(it) },
             onAddNote         = { text, tag, quote -> viewModel.addNote(text, tag, quote) },
+            onEditNote        = { note, text, tag -> viewModel.updateNote(note, text, tag) },
             onDismiss         = { showNotesSheet = false }
         )
     }
@@ -200,8 +222,11 @@ fun QuestionExplanationScreen(
     if (showBookmarkPopup) {
         BookmarkTypePopup(
             currentType = state.qwo?.question?.bookmarkType,
-            onSelect    = { viewModel.setBookmarkType(it) },
-            onDismiss   = { showBookmarkPopup = false }
+            onSelect    = { type ->
+                viewModel.setBookmarkType(type)
+                if (type != null) screenshotType = type
+            },
+            onDismiss = { showBookmarkPopup = false }
         )
     }
 
@@ -244,83 +269,144 @@ fun QuestionExplanationScreen(
         val correctPct = if (answered)
             (state.optionStats.getOrDefault(correctOpt?.id ?: -1, 0) * 100 / totalVotes) else 0
 
-        Column(modifier = Modifier.fillMaxSize().padding(padding)) {
-            Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .verticalScroll(rememberScrollState())
-                    .padding(horizontal = 18.dp, vertical = 18.dp),
-                verticalArrangement = Arrangement.spacedBy(0.dp)
-            ) {
-                Text(qwo.question.questionText, fontSize = 17.sp, lineHeight = 26.sp,
-                    color = Color(0xFF1A1A1A))
+        Box(modifier = Modifier.fillMaxSize().padding(padding)) {
+            Column(modifier = Modifier.fillMaxSize()) {
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .verticalScroll(scrollState, enabled = !selectionActive)
+                        .padding(horizontal = 18.dp, vertical = 18.dp),
+                    verticalArrangement = Arrangement.spacedBy(0.dp)
+                ) {
+                    Text(qwo.question.questionText, fontSize = 17.sp, lineHeight = 26.sp,
+                        fontWeight = FontWeight.Bold, color = Color(0xFF1A1A1A))
 
-                Spacer(Modifier.height(18.dp))
+                    // Image (if available)
+                    qwo.question.imageUrl?.let { url ->
+                        Spacer(Modifier.height(12.dp))
+                        SubcomposeAsyncImage(
+                            model   = url, contentDescription = null,
+                            modifier = Modifier.fillMaxWidth().heightIn(max = 260.dp)
+                                .clip(RoundedCornerShape(10.dp)).background(Color(0xFFF0F0F0)),
+                            contentScale = androidx.compose.ui.layout.ContentScale.Fit,
+                            loading = {
+                                Box(Modifier.fillMaxWidth().height(180.dp), Alignment.Center) {
+                                    CircularProgressIndicator(color = TealHeader, modifier = Modifier.size(30.dp))
+                                }
+                            }
+                        )
+                    }
 
-                qwo.options.sortedBy { it.optionIndex }.forEach { option ->
-                    ExplOptionRow(
-                        option      = option,
-                        selectedId  = state.selectedOptionId,
-                        optionStats = state.optionStats,
-                        totalVotes  = totalVotes,
-                        answered    = answered,
-                        onClick     = { if (!answered) viewModel.selectOption(option.id) }
-                    )
-                    Spacer(Modifier.height(10.dp))
-                }
+                    Spacer(Modifier.height(18.dp))
 
-                if (answered) {
-                    Spacer(Modifier.height(8.dp))
-                    // "X% of people got this right"
-                    Row(verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                        Box(Modifier.size(26.dp)) {
-                            CircularProgressIndicator(
-                                progress = { correctPct / 100f },
-                                modifier = Modifier.fillMaxSize(),
-                                strokeWidth = 3.5.dp,
-                                color = CorrectGreen,
-                                trackColor = Color(0xFFE0E0E0)
+                    qwo.options.sortedBy { it.optionIndex }.forEach { option ->
+                        ExplOptionRow(
+                            option      = option,
+                            selectedId  = state.selectedOptionId,
+                            optionStats = state.optionStats,
+                            totalVotes  = totalVotes,
+                            answered    = answered,
+                            onClick     = { if (!answered) viewModel.selectOption(option.id) }
+                        )
+                        Spacer(Modifier.height(10.dp))
+                    }
+
+                    if (answered) {
+                        Spacer(Modifier.height(8.dp))
+                        Row(verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                            Box(Modifier.size(26.dp)) {
+                                CircularProgressIndicator(
+                                    progress = { correctPct / 100f },
+                                    modifier = Modifier.fillMaxSize(), strokeWidth = 3.5.dp,
+                                    color = CorrectGreen, trackColor = Color(0xFFE0E0E0))
+                            }
+                            Text("$correctPct% of the people got this right",
+                                fontSize = 14.sp, color = Color(0xFF555555))
+                        }
+                        Spacer(Modifier.height(16.dp))
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            TagChip("#Clinical"); TagChip("#NEET")
+                        }
+                        Spacer(Modifier.height(16.dp))
+
+                        // Tag dialog
+                        if (showTagDialog && pendingTagQuote != null) {
+                            NoteInputDialog(
+                                initialText = "",
+                                onConfirm   = { noteText ->
+                                    if (noteText.isNotBlank()) viewModel.addNote(
+                                        noteText, NoteTag.TAG, attachedQuote = pendingTagQuote)
+                                    pendingTagQuote = null
+                                },
+                                onDismiss = { showTagDialog = false; pendingTagQuote = null }
                             )
                         }
-                        Text("$correctPct% of the people got this right",
-                            fontSize = 14.sp, color = Color(0xFF555555))
+
+                        HighlightableText(
+                            text                = qwo.question.explanation,
+                            highlights          = state.highlights,
+                            notes               = tagNotes,
+                            onHighlight         = { text, color -> viewModel.addHighlight(text, color) },
+                            onTagSelected       = { sel -> pendingTagQuote = sel; showTagDialog = true },
+                            onDeleteTag         = { note -> viewModel.deleteNote(note) },
+                            onEditTag           = { note, txt ->
+                                viewModel.deleteNote(note)
+                                viewModel.addNote(txt, NoteTag.TAG, note.attachedQuote)
+                            },
+                            onScrollEnabled     = { en -> selectionActive = !en },
+                            scrollOffsetPx      = { scrollState.value },
+                            onTranslateSelected = { text ->
+                                selectedTranslateText  = text
+                                showSelectionTranslate = true
+                            }
+                        )
+                        Spacer(Modifier.height(16.dp))
                     }
+                }
 
-                    Spacer(Modifier.height(16.dp))
-
-                    // Tags row
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalAlignment = Alignment.CenterVertically) {
-                        Text(qwo.question.id.toString().padStart(12, '0'),
-                            fontSize = 11.sp, color = DimGray)
-                        TagChip("#Clinical")
-                        TagChip("#NEET")
+                // Bottom bar: Report | Share | Bookmark | (back to quiz not needed here)
+                if (answered) {
+                    HorizontalDivider(color = Color(0xFFEEEEEE))
+                    Row(
+                        modifier = Modifier.fillMaxWidth().height(56.dp)
+                            .background(Color.White).navigationBarsPadding(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        BottomAction(Icons.Filled.Warning, "Report", Color(0xFF9E9E9E), Modifier.weight(1f)) {}
+                        VerticalDivider(Modifier.height(34.dp), thickness = 1.dp, color = Color(0xFFEEEEEE))
+                        BottomAction(Icons.Filled.Share,   "Share",  Color(0xFF9E9E9E), Modifier.weight(1f)) {}
+                        VerticalDivider(Modifier.height(34.dp), thickness = 1.dp, color = Color(0xFFEEEEEE))
+                        val bmColor = bookmarkColor(qwo.question.bookmarkType)
+                        val bmIcon  = bookmarkIcon(qwo.question.bookmarkType)
+                        BottomAction(bmIcon,
+                            if (qwo.question.bookmarkType != null) "Bookmarked" else "Bookmark",
+                            bmColor, Modifier.weight(1f)) { showBookmarkPopup = true }
                     }
-
-                    Spacer(Modifier.height(16.dp))
-
-                    HighlightableText(
-                        text                = qwo.question.explanation,
-                        highlights          = state.highlights,
-                        onHighlight         = { text, color -> viewModel.addHighlight(text, color) },
-                        onTranslateSelected = { text ->
-                            selectedTranslateText  = text
-                            showSelectionTranslate = true
-                        }
-                    )
-
-                    Spacer(Modifier.height(16.dp))
                 }
             }
 
-            if (answered) {
-                ExplanationActionBar(
-                    currentBookmarkType = qwo.question.bookmarkType,
-                    onBookmarkClick     = { showBookmarkPopup = true }
-                )
+            // Bookmark screenshot effect
+            screenshotType?.let { type ->
+                BookmarkScreenshotEffect(bookmarkType = type, onComplete = { screenshotType = null })
             }
         }
+    }
+}
+
+@Composable
+private fun BottomAction(
+    icon: ImageVector, label: String, tint: Color,
+    modifier: Modifier, onClick: () -> Unit
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+        modifier = modifier.fillMaxHeight().clickable(onClick = onClick)
+    ) {
+        Icon(icon, null, tint = tint, modifier = Modifier.size(20.dp))
+        Spacer(Modifier.height(3.dp))
+        Text(label, fontSize = 10.sp, color = tint)
     }
 }
 

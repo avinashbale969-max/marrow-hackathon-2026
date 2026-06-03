@@ -15,7 +15,10 @@ sealed class NavRoutes(val route: String) {
     object Flashcards : NavRoutes("flashcards")
     object Analytics : NavRoutes("analytics")
     object Profile : NavRoutes("profile")
-    object Bookmarks : NavRoutes("bookmarks")
+    object Bookmarks        : NavRoutes("bookmarks")
+    object SubjectBookmarks : NavRoutes("subject_bookmarks/{subjectId}") {
+        fun create(subjectId: Long) = "subject_bookmarks/$subjectId"
+    }
     object AllNotes     : NavRoutes("all_notes")
     object SubjectNotes : NavRoutes("subject_notes/{subjectId}") {
         fun create(subjectId: Long) = "subject_notes/$subjectId"

@@ -43,6 +43,7 @@ fun MyNotesSheet(
     onDeleteHighlight: (HighlightEntity) -> Unit,
     onDeleteNote: (NoteEntity) -> Unit,
     onAddNote: (String, NoteTag, String?) -> Unit,
+    onEditNote: ((NoteEntity, String, NoteTag) -> Unit)? = null,
     onDismiss: () -> Unit
 ) {
     var selectedTab      by remember { mutableIntStateOf(0) }
@@ -50,6 +51,23 @@ fun MyNotesSheet(
     var noteTagFilter    by remember { mutableStateOf<String?>(null) }
     var showNoteInput    by remember { mutableStateOf(false) }
     var pendingQuote     by remember { mutableStateOf<String?>(null) }
+    var editingNote      by remember { mutableStateOf<NoteEntity?>(null) }
+
+    // Edit sheet
+    editingNote?.let { note ->
+        NoteInputSheet(
+            attachedQuote = note.attachedQuote,
+            initialText   = note.text,
+            initialTag    = NoteTag.entries.find { it.name == note.tag } ?: NoteTag.NONE,
+            isEditing     = true,
+            onSave        = { text, tag ->
+                onEditNote?.invoke(note, text, tag)
+                editingNote = null
+            },
+            onDismiss     = { editingNote = null }
+        )
+        return
+    }
 
     if (showNoteInput) {
         NoteInputSheet(
@@ -117,6 +135,7 @@ fun MyNotesSheet(
                     tagFilter    = noteTagFilter,
                     onFilterTag  = { noteTagFilter = if (noteTagFilter == it) null else it },
                     onDelete     = onDeleteNote,
+                    onEdit       = { editingNote = it },
                     onAddNote    = { showNoteInput = true },
                     onAttachNote = { quote -> pendingQuote = quote; showNoteInput = true }
                 )
@@ -140,6 +159,7 @@ private fun NotesTab(
     tagFilter: String?,
     onFilterTag: (String) -> Unit,
     onDelete: (NoteEntity) -> Unit,
+    onEdit: (NoteEntity) -> Unit,
     onAddNote: () -> Unit,
     onAttachNote: (String) -> Unit
 ) {
@@ -169,7 +189,13 @@ private fun NotesTab(
                 contentPadding = PaddingValues(12.dp),
                 verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                items(filtered) { note -> NoteCard(note = note, onDelete = { onDelete(note) }) }
+                items(filtered) { note ->
+                    NoteCard(
+                        note     = note,
+                        onDelete = { onDelete(note) },
+                        onEdit   = { onEdit(note) }
+                    )
+                }
             }
         }
     }
@@ -274,7 +300,11 @@ private fun BookmarksTab(bookmarkType: String?) {
 // ── Cards ─────────────────────────────────────────────────────────────────────
 
 @Composable
-fun NoteCard(note: NoteEntity, onDelete: () -> Unit) {
+fun NoteCard(
+    note: NoteEntity,
+    onDelete: () -> Unit,
+    onEdit: (() -> Unit)? = null
+) {
     val tagColor = when (note.tag) {
         NoteTag.IMP.name   -> Color(0xFFFFC107)
         NoteTag.DOUBT.name -> Color(0xFF2196F3)
@@ -313,7 +343,7 @@ fun NoteCard(note: NoteEntity, onDelete: () -> Unit) {
             // Note text
             Text(note.text, fontSize = 14.sp, color = Color(0xFF2D2D2D), lineHeight = 21.sp)
 
-            // Footer: tag + time + delete
+            // Footer: tag + time + edit + delete
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -334,6 +364,10 @@ fun NoteCard(note: NoteEntity, onDelete: () -> Unit) {
                 Row(verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(timeStr, fontSize = 11.sp, color = Color.LightGray)
+                    if (onEdit != null) {
+                        Icon(Icons.Filled.Edit, null, tint = TealHeader,
+                            modifier = Modifier.size(16.dp).clickable(onClick = onEdit))
+                    }
                     Icon(Icons.Filled.Delete, null, tint = Color(0xFFCCCCCC),
                         modifier = Modifier.size(16.dp).clickable(onClick = onDelete))
                 }
@@ -370,10 +404,6 @@ fun HighlightCard(
                     horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     Box(Modifier.size(10.dp).clip(CircleShape).background(accentColor))
                     Text(highlight.color.lowercase(), fontSize = 11.sp, color = Color.Gray)
-                    if (onAddNote != null) {
-                        Text("· Add note", fontSize = 11.sp, color = TealHeader,
-                            modifier = Modifier.clickable(onClick = onAddNote))
-                    }
                 }
                 Row(verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -392,11 +422,14 @@ fun HighlightCard(
 @Composable
 fun NoteInputSheet(
     attachedQuote: String? = null,
+    initialText: String = "",
+    initialTag: NoteTag = NoteTag.NONE,
+    isEditing: Boolean = false,
     onSave: (String, NoteTag) -> Unit,
     onDismiss: () -> Unit
 ) {
-    var noteText    by remember { mutableStateOf("") }
-    var selectedTag by remember { mutableStateOf(NoteTag.NONE) }
+    var noteText    by remember { mutableStateOf(initialText) }
+    var selectedTag by remember { mutableStateOf(initialTag) }
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -413,12 +446,14 @@ fun NoteInputSheet(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("Self Note", fontWeight = FontWeight.Bold, fontSize = 17.sp)
+                Text(if (isEditing) "Edit Note" else "Self Note",
+                    fontWeight = FontWeight.Bold, fontSize = 17.sp)
                 TextButton(
                     onClick = { if (noteText.isNotBlank()) onSave(noteText.trim(), selectedTag) },
                     enabled = noteText.isNotBlank()
                 ) {
-                    Text("Save", color = if (noteText.isNotBlank()) TealHeader else Color.Gray,
+                    Text(if (isEditing) "Update" else "Save",
+                        color = if (noteText.isNotBlank()) TealHeader else Color.Gray,
                         fontWeight = FontWeight.SemiBold)
                 }
             }

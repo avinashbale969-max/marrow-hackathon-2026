@@ -60,30 +60,37 @@ class SubjectsViewModel @Inject constructor(
     val subjects: StateFlow<List<SubjectEntity>> = subjectDao.getAllSubjects()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
+    // Eagerly — always live, update instantly when DB changes from any screen
     val notesCount: StateFlow<Int> = noteDao.getAll()
         .map { it.size }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), 0)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, 0)
 
     val highlightsCount: StateFlow<Int> = highlightDao.getAll()
         .map { it.size }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), 0)
-
-    fun getAllNotes()      = noteDao.getAll()
-    fun getAllHighlights() = highlightDao.getAll()
+        .stateIn(viewModelScope, SharingStarted.Eagerly, 0)
 
     val greenHighlightsCount: StateFlow<Int> = highlightDao.getGreenCount()
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), 0)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, 0)
     val orangeHighlightsCount: StateFlow<Int> = highlightDao.getOrangeCount()
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), 0)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, 0)
+
+    // Live lists — always subscribed to DB, reflect changes immediately
+    private val _allNotesWithSubject = noteDao.getAllWithSubjectName()
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+    private val _allHighlightsWithSubject = highlightDao.getAllWithSubjectName()
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+
+    fun getAllNotes()             = noteDao.getAll()
+    fun getAllHighlights()        = highlightDao.getAll()
+    fun getAllNotesWithSubject()  = _allNotesWithSubject
+    fun getAllHighlightsWithSubject() = _allHighlightsWithSubject
 
     fun getNotesCountBySubject()      = noteDao.getCountBySubject()
     fun getHighlightsCountBySubject() = highlightDao.getCountBySubject()
 
-    fun getNotesForSubject(subjectId: Long)      = noteDao.getForSubject(subjectId)
-    fun getHighlightsForSubject(subjectId: Long) = highlightDao.getForSubject(subjectId)
-    fun getAllNotesWithSubject()                  = noteDao.getAllWithSubjectName()
-    fun getAllHighlightsWithSubject()             = highlightDao.getAllWithSubjectName()
-    fun getNotesWithSubject(subjectId: Long)     = noteDao.getForSubjectWithName(subjectId)
+    fun getNotesForSubject(subjectId: Long)       = noteDao.getForSubject(subjectId)
+    fun getHighlightsForSubject(subjectId: Long)  = highlightDao.getForSubject(subjectId)
+    fun getNotesWithSubject(subjectId: Long)      = noteDao.getForSubjectWithName(subjectId)
     fun getHighlightsWithSubject(subjectId: Long) = highlightDao.getForSubjectWithName(subjectId)
 
     fun getTopicsForSubject(subjectId: Long): Flow<List<TopicEntity>> =
@@ -92,6 +99,7 @@ class SubjectsViewModel @Inject constructor(
     fun getNotesForTopic(topicId: Long)      = noteDao.getForTopic(topicId)
     fun getHighlightsForTopic(topicId: Long) = highlightDao.getForTopic(topicId)
     fun getBookmarkedForTopic(topicId: Long) = questionDao.getBookmarkedForTopic(topicId)
+    fun getBookmarkedForTopic_Subject(subjectId: Long) = questionDao.getBookmarkedForSubject(subjectId)
     fun getBookmarkCountForTopic(topicId: Long) = questionDao.getBookmarkedCountForTopic(topicId)
 
     fun hasPausedQuiz(topicId: Long) = pausedQuizDao.hasPausedForTopic(topicId)

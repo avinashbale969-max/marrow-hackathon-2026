@@ -39,7 +39,6 @@ fun TopicDetailScreen(
     topicId: Long,
     onBack: () -> Unit,
     onSolve: (Long) -> Unit,
-    onStartFresh: (Long) -> Unit,
     onReview: (Long, Long) -> Unit,
     onBookmarks: (Long, Long) -> Unit,
     onNotes: (Long, Long) -> Unit,
@@ -224,14 +223,6 @@ fun TopicDetailScreen(
                                     fontWeight = FontWeight.Bold, fontSize = 14.sp,
                                     letterSpacing = 1.sp
                                 )
-                            }
-                            if (hasPaused && !isCompleted) {
-                                Text("Start Fresh", fontSize = 12.sp, color = Color(0xFF888888),
-                                    modifier = Modifier.clickable { onStartFresh(topicId) })
-                            }
-                            if (isCompleted) {
-                                Text("Solve Again", fontSize = 12.sp, color = Color(0xFF888888),
-                                    modifier = Modifier.clickable { onStartFresh(topicId) })
                             }
                         }
                     }

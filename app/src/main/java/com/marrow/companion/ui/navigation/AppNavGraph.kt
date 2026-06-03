@@ -16,6 +16,7 @@ import com.marrow.companion.ui.screens.dashboard.DashboardScreen
 import com.marrow.companion.ui.screens.flashcard.FlashcardScreen
 import com.marrow.companion.ui.screens.profile.ProfileScreen
 import com.marrow.companion.ui.screens.quiz.QuizScreen
+import com.marrow.companion.ui.screens.bookmarks.SubjectBookmarksScreen
 import com.marrow.companion.ui.screens.subjects.AllNotesScreen
 import com.marrow.companion.ui.screens.subjects.SubjectNotesScreen
 import com.marrow.companion.ui.screens.subjects.SubjectsScreen
@@ -142,8 +143,22 @@ fun AppNavGraph() {
 
             composable(NavRoutes.Bookmarks.route) {
                 BookmarksScreen(
-                    onBack = { navController.popBackStack() },
-                    onStartBookmarkQuiz = { navController.navigate(NavRoutes.Quiz.random()) }
+                    onBack              = { navController.popBackStack() },
+                    onStartBookmarkQuiz = { navController.navigate(NavRoutes.Quiz.random()) },
+                    onSubjectClick      = { subjectId ->
+                        navController.navigate(NavRoutes.SubjectBookmarks.create(subjectId))
+                    }
+                )
+            }
+
+            composable(
+                route = NavRoutes.SubjectBookmarks.route,
+                arguments = listOf(navArgument("subjectId") { type = NavType.LongType })
+            ) { backStack ->
+                val subjectId = backStack.arguments?.getLong("subjectId") ?: return@composable
+                SubjectBookmarksScreen(
+                    subjectId = subjectId,
+                    onBack    = { navController.popBackStack() }
                 )
             }
 
@@ -174,9 +189,8 @@ fun AppNavGraph() {
                     subjectId    = subjectId,
                     topicId      = topicId,
                     onBack       = { navController.popBackStack() },
-                    onSolve      = { tId -> navController.navigate(NavRoutes.Quiz.forTopic(tId)) },
-                    onStartFresh = { tId -> navController.navigate(NavRoutes.Quiz.forTopic(tId, fresh = true)) },
-                    onReview     = { sId, tId -> navController.navigate(NavRoutes.TopicReview.create(sId, tId)) },
+                    onSolve  = { tId -> navController.navigate(NavRoutes.Quiz.forTopic(tId)) },
+                    onReview = { sId, tId -> navController.navigate(NavRoutes.TopicReview.create(sId, tId)) },
                     onBookmarks  = { sId, tId -> navController.navigate(NavRoutes.TopicBookmarks.create(sId, tId)) },
                     onNotes      = { sId, tId -> navController.navigate(NavRoutes.TopicNotes.create(sId, tId)) }
                 )

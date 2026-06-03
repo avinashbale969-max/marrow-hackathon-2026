@@ -26,6 +26,7 @@ private val tealHeader = Color(0xFF4DC8D4)
 fun BookmarksScreen(
     onBack: () -> Unit,
     onStartBookmarkQuiz: () -> Unit,
+    onSubjectClick: (Long) -> Unit = {},
     viewModel: BookmarksViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
@@ -117,9 +118,9 @@ fun BookmarksScreen(
             // Per-subject rows
             items(state.bySubject) { item ->
                 BookmarkRow(
-                    label = item.subjectName,
-                    count = item.count,
-                    onClick = {}
+                    label   = item.subjectName,
+                    count   = item.count,
+                    onClick = { onSubjectClick(item.subjectId) }
                 )
                 HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
             }

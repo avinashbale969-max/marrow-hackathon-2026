@@ -84,7 +84,7 @@ interface QuestionDao {
     fun getBookmarkedCountByType(type: String): Flow<Int>
 
     @Query("""
-        SELECT s.name as subjectName, COUNT(q.id) as count
+        SELECT q.subjectId as subjectId, s.name as subjectName, COUNT(q.id) as count
         FROM questions q INNER JOIN subjects s ON q.subjectId = s.id
         WHERE q.bookmarkType IS NOT NULL
         GROUP BY q.subjectId ORDER BY s.name ASC
@@ -111,5 +111,5 @@ interface QuestionDao {
 }
 
 data class SubjectAccuracy(val subjectId: Long, val total: Int, val correct: Int)
-data class SubjectBookmarkCount(val subjectName: String, val count: Int)
+data class SubjectBookmarkCount(val subjectId: Long, val subjectName: String, val count: Int)
 data class SubjectAttempted(val subjectId: Long, val attempted: Int)

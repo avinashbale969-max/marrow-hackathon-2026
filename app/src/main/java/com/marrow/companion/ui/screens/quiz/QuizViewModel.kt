@@ -124,6 +124,11 @@ class QuizViewModel @Inject constructor(
                     sessionId    = sessionId
                 )
             }
+            // Start observing notes/highlights for the starting question
+            questions.getOrNull(startIndex)?.question?.id?.let { qId ->
+                loadHighlights(qId)
+                loadNotes(qId)
+            }
             startTimer()
         }
     }
@@ -253,8 +258,19 @@ class QuizViewModel @Inject constructor(
         }
     }
 
-    private fun loadHighlights(questionId: Long) {
+    fun updateNote(note: NoteEntity, newText: String, newTag: NoteTag) {
         viewModelScope.launch {
+            noteDao.update(note.copy(text = newText, tag = newTag.name))
+            _state.value.currentQuestion?.question?.id?.let { loadNotes(it) }
+        }
+    }
+
+    private var highlightsJob: kotlinx.coroutines.Job? = null
+    private var notesJob: kotlinx.coroutines.Job? = null
+
+    private fun loadHighlights(questionId: Long) {
+        highlightsJob?.cancel()
+        highlightsJob = viewModelScope.launch {
             highlightDao.getForQuestion(questionId).collect { list ->
                 _state.update { it.copy(highlights = list) }
             }
@@ -262,7 +278,8 @@ class QuizViewModel @Inject constructor(
     }
 
     private fun loadNotes(questionId: Long) {
-        viewModelScope.launch {
+        notesJob?.cancel()
+        notesJob = viewModelScope.launch {
             noteDao.getForQuestion(questionId).collect { list ->
                 _state.update { it.copy(notes = list) }
             }
@@ -294,6 +311,11 @@ class QuizViewModel @Inject constructor(
         _state.update {
             it.copy(currentIndex = nextIndex, selectedOptionId = null,
                 showExplanation = false, timeRemainingMs = 60_000L)
+        }
+        // Observe notes/highlights for the new question
+        _state.value.questions.getOrNull(nextIndex)?.question?.id?.let { qId ->
+            loadHighlights(qId)
+            loadNotes(qId)
         }
         startTimer()
     }
