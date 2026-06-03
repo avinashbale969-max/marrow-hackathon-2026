@@ -1,0 +1,4 @@
+-keep class com.marrow.companion.data.network.** { *; }
+-keepattributes Signature
+-keepattributes *Annotation*
+-dontwarn okhttp3.**
