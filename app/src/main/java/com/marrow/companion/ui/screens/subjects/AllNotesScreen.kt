@@ -1,5 +1,10 @@
 package com.marrow.companion.ui.screens.subjects
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -12,19 +17,17 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
-import androidx.compose.ui.draw.shadow
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.animation.core.tween
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontStyle
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.marrow.companion.data.database.dao.HighlightWithSubject
 import com.marrow.companion.data.database.dao.NoteWithSubject
@@ -139,62 +142,70 @@ fun AllNotesScreen(
                     val expanded  = expandedSubjects[subjectId] ?: false
                     val topicRows = topicHlMap[subjectId]?.sortedByDescending { it.count } ?: emptyList()
 
-                    // Subject header row
+                    // Subject header + animated lesson rows — single item for smooth animation
                     item(key = "subj_$subjectId") {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .background(Color.White)
-                                .clickable { expandedSubjects[subjectId] = !expanded }
-                                .padding(horizontal = 20.dp, vertical = 16.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(subjectName, fontSize = 15.sp,
-                                fontWeight = FontWeight.SemiBold,
-                                color = Color(0xFF222222), modifier = Modifier.weight(1f))
-                            // highlight count badge
-                            Box(
-                                Modifier.clip(RoundedCornerShape(20.dp))
-                                    .background(Teal.copy(alpha = 0.12f))
-                                    .padding(horizontal = 8.dp, vertical = 3.dp)
+                        Column {
+                            // Header row
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .background(Color.White)
+                                    .clickable { expandedSubjects[subjectId] = !expanded }
+                                    .padding(horizontal = 20.dp, vertical = 16.dp),
+                                verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Text("$count", fontSize = 11.sp,
-                                    fontWeight = FontWeight.Bold, color = Teal)
-                            }
-                            Spacer(Modifier.width(10.dp))
-                            Icon(
-                                if (expanded) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,
-                                null, tint = Color(0xFFAAAAAA), modifier = Modifier.size(20.dp)
-                            )
-                        }
-                        HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp),
-                            color = Color(0xFFEEEEEE))
-                    }
-
-                    // Lesson rows (shown when expanded)
-                    if (expanded) {
-                        if (topicRows.isEmpty()) {
-                            item(key = "subj_${subjectId}_empty") {
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .background(Color(0xFFFAFAFA))
-                                        .padding(start = 40.dp, end = 20.dp, top = 12.dp, bottom = 12.dp)
+                                Text(subjectName, fontSize = 15.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = Color(0xFF222222), modifier = Modifier.weight(1f))
+                                Box(
+                                    Modifier.clip(RoundedCornerShape(20.dp))
+                                        .background(Teal.copy(alpha = 0.12f))
+                                        .padding(horizontal = 8.dp, vertical = 3.dp)
                                 ) {
-                                    Text("No lessons with highlights",
-                                        fontSize = 13.sp, color = Color.Gray)
+                                    Text("$count", fontSize = 11.sp,
+                                        fontWeight = FontWeight.Bold, color = Teal)
                                 }
-                            }
-                        } else {
-                            items(topicRows, key = { "topic_${it.topicId}" }) { topicCount ->
-                                LessonRow(
-                                    topicId    = topicCount.topicId,
-                                    subjectId  = subjectId,
-                                    count      = topicCount.count,
-                                    viewModel  = viewModel,
-                                    onClick    = { onTopicClick(subjectId, topicCount.topicId) }
+                                Spacer(Modifier.width(10.dp))
+                                Icon(
+                                    if (expanded) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,
+                                    null, tint = Color(0xFFAAAAAA), modifier = Modifier.size(20.dp)
                                 )
                             }
+
+                            // Animated lesson rows
+                            AnimatedVisibility(
+                                visible = expanded,
+                                enter = expandVertically(tween(160)) + fadeIn(tween(120)),
+                                exit  = shrinkVertically(tween(140)) + fadeOut(tween(100))
+                            ) {
+                                Column {
+                                    if (topicRows.isEmpty()) {
+                                        Row(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .background(Color(0xFFFAFAFA))
+                                                .padding(start = 40.dp, end = 20.dp,
+                                                    top = 12.dp, bottom = 12.dp)
+                                        ) {
+                                            Text("No lessons with highlights",
+                                                fontSize = 13.sp, color = Color.Gray)
+                                        }
+                                    } else {
+                                        topicRows.forEach { topicCount ->
+                                            LessonRow(
+                                                topicId   = topicCount.topicId,
+                                                subjectId = subjectId,
+                                                count     = topicCount.count,
+                                                viewModel = viewModel,
+                                                onClick   = { onTopicClick(subjectId, topicCount.topicId) }
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+
+                            HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp),
+                                color = Color(0xFFEEEEEE))
                         }
                     }
                 }
