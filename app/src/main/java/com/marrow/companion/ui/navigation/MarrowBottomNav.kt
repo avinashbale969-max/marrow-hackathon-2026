@@ -15,6 +15,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.layout.navigationBarsPadding
 
 private val TealSelected   = Color(0xFF4DC8D4)
 private val UnselectedGray = Color(0xFF9E9E9E)
@@ -31,6 +32,7 @@ fun MarrowBottomNav(
         modifier = Modifier
             .fillMaxWidth()
             .background(Color.White)
+            .navigationBarsPadding()
     ) {
         // Top divider line
         Box(
