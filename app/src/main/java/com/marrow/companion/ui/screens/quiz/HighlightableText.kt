@@ -38,6 +38,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
+import androidx.compose.ui.zIndex
 import com.marrow.companion.data.database.entities.HighlightColor
 import com.marrow.companion.data.database.entities.HighlightEntity
 import com.marrow.companion.data.database.entities.NoteEntity
@@ -72,6 +73,7 @@ fun HighlightableText(
     val view             = LocalView.current
 
     var showPicker        by remember { mutableStateOf(false) }
+    var userDismissed     by remember { mutableStateOf(false) }
     var pendingCopy       by remember { mutableStateOf<(() -> Unit)?>(null) }
     var lastHighlightText by remember { mutableStateOf("") }
     var popupOffset  by remember { mutableStateOf(IntOffset.Zero) }
@@ -118,10 +120,12 @@ fun HighlightableText(
                 val y        = (rect.top.toInt() - boxY - toolbarH - caret - 8).coerceAtLeast(0)
 
                 popupOffset = IntOffset(x, y)
-                showPicker  = true
+                if (!userDismissed) showPicker = true
             }
             override fun hide() {
-                status = TextToolbarStatus.Hidden; showPicker = false
+                status = TextToolbarStatus.Hidden
+                showPicker = false
+                userDismissed = false   // reset so next selection shows toolbar
                 onScrollEnabled?.invoke(true)
             }
         }
@@ -269,13 +273,29 @@ fun HighlightableText(
             Popup(
                 alignment        = Alignment.TopStart,
                 offset           = popupOffset,
-                onDismissRequest = { showPicker = false },
-                properties       = PopupProperties(focusable = false)
+                onDismissRequest = { userDismissed = true; showPicker = false },
+                properties       = PopupProperties(focusable = true, dismissOnClickOutside = true)
             ) {
-                Column(
-                    modifier            = Modifier.width(280.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
+                Box(modifier = Modifier.width(280.dp)) {
+                    // Close button floating at top-right corner, OUTSIDE the card
+                    Box(
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .size(26.dp)
+                            .clip(CircleShape)
+                            .background(Color(0xFF555555))
+                            .clickable { userDismissed = true; showPicker = false }
+                            .zIndex(1f),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(Icons.Filled.Close, null, tint = Color.White,
+                            modifier = Modifier.size(13.dp))
+                    }
+
+                    Column(
+                        modifier            = Modifier.padding(top = 13.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
                     Card(
                         shape     = RoundedCornerShape(12.dp),
                         colors    = CardDefaults.cardColors(containerColor = ToolbarBg),
@@ -337,8 +357,6 @@ fun HighlightableText(
                                         showPicker = false
                                     }
                                 }
-                                Icon(Icons.Filled.Close, null, tint = Color(0xFF888888),
-                                    modifier = Modifier.size(14.dp).clickable { showPicker = false })
                             }
                         }
                     }
@@ -348,7 +366,8 @@ fun HighlightableText(
                             lineTo(size.width / 2f, size.height); close()
                         }, ToolbarBg)
                     }
-                }
+                    } // end Column
+                } // end Box
             }
         }
     }
