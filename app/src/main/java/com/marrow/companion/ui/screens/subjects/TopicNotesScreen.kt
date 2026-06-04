@@ -1,6 +1,7 @@
 package com.marrow.companion.ui.screens.subjects
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -84,8 +85,8 @@ fun TopicNotesScreen(
             } else {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     items(highlights) { hl ->
                         HighlightCard(hl,
@@ -220,36 +221,41 @@ private fun HighlightCard(hl: HighlightEntity, onDelete: (() -> Unit)? = null, o
     }
     val isOrange = hl.color == HighlightColor.ORANGE.name
     val accent   = if (isOrange) OrangeHL else GreenHL
-    val bg       = if (isOrange) Color(0xFFFFF8E1) else Color(0xFFE8F5E9)
+    val bg       = if (isOrange) Color(0xFFFFFBF0) else Color(0xFFF0FBF1)
+    val border   = if (isOrange) Color(0xFFFFCC80) else Color(0xFFA5D6A7)
 
     Card(
-        modifier  = Modifier.fillMaxWidth(),
-        shape     = RoundedCornerShape(10.dp),
+        modifier  = Modifier
+            .fillMaxWidth()
+            .border(1.dp, border, RoundedCornerShape(12.dp)),
+        shape     = RoundedCornerShape(12.dp),
         colors    = CardDefaults.cardColors(containerColor = bg),
-        elevation = CardDefaults.cardElevation(0.dp)
+        elevation = CardDefaults.cardElevation(2.dp)
     ) {
         Column(
-            modifier = Modifier.padding(14.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             Row(
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                 verticalAlignment = Alignment.Top
             ) {
                 Box(
-                    Modifier.width(4.dp).heightIn(min = 16.dp)
-                        .background(accent).clip(RoundedCornerShape(2.dp))
+                    Modifier.width(4.dp).heightIn(min = 18.dp)
+                        .clip(RoundedCornerShape(2.dp))
+                        .background(accent)
                 )
                 Text(
                     "\"${hl.text}\"",
                     fontSize   = 14.sp,
-                    lineHeight = 21.sp,
-                    color      = Color(0xFF333333),
+                    lineHeight = 22.sp,
+                    color      = Color(0xFF1A1A1A),
+                    fontWeight = FontWeight.Medium,
                     modifier   = Modifier.weight(1f)
                 )
                 if (onDelete != null) {
-                    Icon(Icons.Filled.Delete, null, tint = accent.copy(alpha = 0.5f),
-                        modifier = Modifier.size(16.dp).clickable { showConfirm = true })
+                    Icon(Icons.Filled.Delete, null, tint = accent.copy(alpha = 0.6f),
+                        modifier = Modifier.size(17.dp).clickable { showConfirm = true })
                 }
             }
             if (onMcqClick != null) {
@@ -260,9 +266,9 @@ private fun HighlightCard(hl: HighlightEntity, onDelete: (() -> Unit)? = null, o
                             .clip(RoundedCornerShape(20.dp))
                             .background(accent)
                             .clickable { onMcqClick(hl.questionId) }
-                            .padding(horizontal = 12.dp, vertical = 5.dp)
+                            .padding(horizontal = 14.dp, vertical = 6.dp)
                     ) {
-                        Text(label, fontSize = 11.sp, fontWeight = FontWeight.Bold,
+                        Text(label, fontSize = 12.sp, fontWeight = FontWeight.Bold,
                              fontFamily = FontFamily.Monospace, color = Color.White)
                     }
                 }

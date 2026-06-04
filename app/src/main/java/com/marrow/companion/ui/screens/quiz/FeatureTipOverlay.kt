@@ -92,15 +92,6 @@ fun ExplanationFeatureTip(onDismiss: () -> Unit) {
                             Icon(Icons.Filled.StickyNote2, null,
                                 tint = Color(0xFF795548), modifier = Modifier.size(24.dp))
                         }
-                        // Notes icon
-                        Box(
-                            Modifier.size(44.dp).clip(CircleShape)
-                                .background(Teal.copy(alpha = 0.15f)),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(Icons.Filled.Edit, null,
-                                tint = Teal, modifier = Modifier.size(24.dp))
-                        }
                     }
                 }
 
@@ -135,13 +126,6 @@ fun ExplanationFeatureTip(onDismiss: () -> Unit) {
                         title = "Tag a reason",
                         desc  = "Select text → tap 🏷 Tag → note why you highlighted it"
                     )
-                    TipRow(
-                        color = Teal,
-                        icon  = Icons.Filled.Edit,
-                        title = "Add notes",
-                        desc  = "Tap My Notes (top right) → write ⭐ Imp or ❓ Doubt notes"
-                    )
-
                     Spacer(Modifier.height(4.dp))
 
                     Button(
