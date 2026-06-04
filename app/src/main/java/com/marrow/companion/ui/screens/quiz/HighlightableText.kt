@@ -13,6 +13,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -393,6 +394,61 @@ fun HighlightableText(
                                         coroutineScope.launch { flashAlpha.snapTo(1f); flashAlpha.animateTo(0f, tween(700)) }
                                     }
                                 }
+                                // Delete icon — shown only when selection overlaps an existing highlight
+                                val selectionHit = highlightAt(pendingSelectionOffset)
+                                if (selectionHit != null && onDeleteHighlight != null) {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(30.dp)
+                                            .clickable {
+                                                coroutineScope.launch {
+                                                    pendingCopy?.invoke()
+                                                    delay(80)
+                                                    val selected = clipboardManager.getText()?.text?.trim() ?: ""
+                                                    val hlStart = if (selectionHit.startOffset >= 0 &&
+                                                                      selectionHit.startOffset + selectionHit.text.length <= text.length &&
+                                                                      text.substring(selectionHit.startOffset, selectionHit.startOffset + selectionHit.text.length) == selectionHit.text)
+                                                        selectionHit.startOffset else text.indexOf(selectionHit.text)
+                                                    val hlEnd   = if (hlStart >= 0) hlStart + selectionHit.text.length else -1
+                                                    val hlColor = HighlightColor.entries.firstOrNull { it.name == selectionHit.color } ?: HighlightColor.GREEN
+                                                    if (selected.isBlank() || hlStart < 0 || hlEnd < 0) {
+                                                        onDeleteHighlight.invoke(selectionHit); showPicker = false; return@launch
+                                                    }
+                                                    val selStart = findOccurrenceStart(text, selected, pendingSelectionOffset)
+                                                    val selEnd   = if (selStart >= 0) selStart + selected.length else -1
+                                                    if (selStart < 0 || selEnd < 0) {
+                                                        onDeleteHighlight.invoke(selectionHit); showPicker = false; return@launch
+                                                    }
+                                                    val removeStart = maxOf(hlStart, selStart)
+                                                    val removeEnd   = minOf(hlEnd, selEnd)
+                                                    onDeleteHighlight.invoke(selectionHit)
+                                                    if (removeStart < removeEnd) {
+                                                        if (removeStart > hlStart) {
+                                                            val rawBefore = text.substring(hlStart, removeStart)
+                                                            val trimBefore = rawBefore.trim()
+                                                            if (trimBefore.isNotBlank()) {
+                                                                val lead = rawBefore.length - rawBefore.trimStart().length
+                                                                onHighlight(trimBefore, hlColor, hlStart + lead)
+                                                            }
+                                                        }
+                                                        if (removeEnd < hlEnd) {
+                                                            val rawAfter = text.substring(removeEnd, hlEnd)
+                                                            val trimAfter = rawAfter.trim()
+                                                            if (trimAfter.isNotBlank()) {
+                                                                val lead = rawAfter.length - rawAfter.trimStart().length
+                                                                onHighlight(trimAfter, hlColor, removeEnd + lead)
+                                                            }
+                                                        }
+                                                    }
+                                                    showPicker = false
+                                                }
+                                            },
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Icon(Icons.Filled.Delete, contentDescription = "Remove highlight",
+                                            tint = Color.White, modifier = Modifier.size(16.dp))
+                                    }
+                                }
                                 Spacer(Modifier.weight(1f))
                                 Text("Highlight", color = Color.White, fontSize = 14.sp,
                                     fontWeight = FontWeight.Medium)
@@ -426,71 +482,6 @@ fun HighlightableText(
                                         val selected = clipboardManager.getText()?.text?.trim() ?: ""
                                         if (selected.isNotBlank()) onTranslateSelected?.invoke(selected)
                                         showPicker = false
-                                    }
-                                }
-                                val selectionHit = highlightAt(pendingSelectionOffset)
-                                if (selectionHit != null && onDeleteHighlight != null) {
-                                    ActionText("✕ Remove") {
-                                        coroutineScope.launch {
-                                            // Copy selected text so we know exactly which portion to remove
-                                            pendingCopy?.invoke()
-                                            delay(80)
-                                            val selected = clipboardManager.getText()?.text?.trim() ?: ""
-
-                                            // Resolve the highlight's actual start index in the full text
-                                            val hlStart = if (selectionHit.startOffset >= 0 &&
-                                                              selectionHit.startOffset + selectionHit.text.length <= text.length &&
-                                                              text.substring(selectionHit.startOffset, selectionHit.startOffset + selectionHit.text.length) == selectionHit.text)
-                                                selectionHit.startOffset
-                                                else text.indexOf(selectionHit.text)
-                                            val hlEnd   = if (hlStart >= 0) hlStart + selectionHit.text.length else -1
-                                            val hlColor = HighlightColor.entries.firstOrNull { it.name == selectionHit.color } ?: HighlightColor.GREEN
-
-                                            if (selected.isBlank() || hlStart < 0 || hlEnd < 0) {
-                                                // Fallback: remove whole highlight
-                                                onDeleteHighlight.invoke(selectionHit)
-                                                showPicker = false
-                                                return@launch
-                                            }
-
-                                            val selStart = findOccurrenceStart(text, selected, pendingSelectionOffset)
-                                            val selEnd   = if (selStart >= 0) selStart + selected.length else -1
-
-                                            if (selStart < 0 || selEnd < 0) {
-                                                onDeleteHighlight.invoke(selectionHit)
-                                                showPicker = false
-                                                return@launch
-                                            }
-
-                                            // Clamp the removed range to the highlight's actual range
-                                            val removeStart = maxOf(hlStart, selStart)
-                                            val removeEnd   = minOf(hlEnd, selEnd)
-
-                                            // Delete the original highlight first
-                                            onDeleteHighlight.invoke(selectionHit)
-
-                                            if (removeStart < removeEnd) {
-                                                // Re-create the part BEFORE the removed section
-                                                if (removeStart > hlStart) {
-                                                    val rawBefore  = text.substring(hlStart, removeStart)
-                                                    val trimBefore = rawBefore.trim()
-                                                    if (trimBefore.isNotBlank()) {
-                                                        val leadingSpaces = rawBefore.length - rawBefore.trimStart().length
-                                                        onHighlight(trimBefore, hlColor, hlStart + leadingSpaces)
-                                                    }
-                                                }
-                                                // Re-create the part AFTER the removed section
-                                                if (removeEnd < hlEnd) {
-                                                    val rawAfter  = text.substring(removeEnd, hlEnd)
-                                                    val trimAfter = rawAfter.trim()
-                                                    if (trimAfter.isNotBlank()) {
-                                                        val leadingSpaces = rawAfter.length - rawAfter.trimStart().length
-                                                        onHighlight(trimAfter, hlColor, removeEnd + leadingSpaces)
-                                                    }
-                                                }
-                                            }
-                                            showPicker = false
-                                        }
                                     }
                                 }
                             }
