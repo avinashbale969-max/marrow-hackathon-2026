@@ -15,6 +15,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.text.font.FontWeight
@@ -59,8 +60,18 @@ fun DashboardScreen(
             )
         }
     ) {
+    // Fade-in the whole dashboard on first load to mask data-load flicker
+    val contentAlpha = remember { androidx.compose.animation.core.Animatable(0f) }
+    LaunchedEffect(Unit) {
+        contentAlpha.animateTo(1f,
+            androidx.compose.animation.core.tween(350,
+                easing = androidx.compose.animation.core.FastOutSlowInEasing))
+    }
+
     LazyColumn(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize()
+            .graphicsLayer { alpha = contentAlpha.value },
         verticalArrangement = Arrangement.spacedBy(0.dp)
     ) {
         // ── Full-teal hero section ────────────────────────────────────────────
@@ -104,22 +115,27 @@ fun DashboardScreen(
                     val total     = state.totalQuestionsInDb.coerceAtLeast(1)
 
                     // Single animation drives both counter AND ring — always in sync
-                    val animatedCount = remember { androidx.compose.animation.core.Animatable(0f) }
+                    val animatedCount   = remember { androidx.compose.animation.core.Animatable(0f) }
                     val animatedFraction = if (total > 0) animatedCount.value / total else 0f
+                    val hasAnimated     = remember { mutableStateOf(false) }
 
                     LaunchedEffect(attempted) {
-                        animatedCount.snapTo(0f)
-                        if (attempted > 0) {
-                            kotlinx.coroutines.delay(300) // wait for screen to settle
+                        // Only run counter animation once when data first arrives
+                        if (attempted > 0 && !hasAnimated.value) {
+                            hasAnimated.value = true
+                            kotlinx.coroutines.delay(400) // let fade-in finish first
                             animatedCount.animateTo(
                                 targetValue = attempted.toFloat(),
                                 animationSpec = androidx.compose.animation.core.tween(
-                                    durationMillis = 1800,
+                                    durationMillis = 1600,
                                     easing = androidx.compose.animation.core.CubicBezierEasing(
-                                        0.16f, 1f, 0.3f, 1f  // EaseOutExpo — fast burst, ultra-smooth stop
+                                        0.16f, 1f, 0.3f, 1f
                                     )
                                 )
                             )
+                        } else if (hasAnimated.value) {
+                            // Data updated after first load — jump directly, no re-animation
+                            animatedCount.snapTo(attempted.toFloat())
                         }
                     }
 
