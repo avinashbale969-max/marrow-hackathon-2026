@@ -350,7 +350,7 @@ fun SubjectNotesScreen(
                 OutlinedTextField(
                     value         = searchQuery,
                     onValueChange = { searchQuery = it },
-                    placeholder   = { Text("Search notes, highlights, tags…",
+                    placeholder   = { Text("Search highlights, tags…",
                         fontSize = 14.sp, color = Color(0xFF999999)) },
                     leadingIcon   = { Icon(Icons.Filled.Search, null, tint = Teal,
                         modifier = Modifier.size(20.dp)) },
