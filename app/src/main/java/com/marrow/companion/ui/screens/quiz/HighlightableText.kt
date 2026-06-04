@@ -48,7 +48,6 @@ import com.marrow.companion.data.database.entities.NoteEntity
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-
 private val GreenHL   = Color(0xFF66BB6A)
 private val OrangeHL  = Color(0xFFFFA726)
 private val GreenBg   = Color(0xFF66BB6A).copy(alpha = 0.28f)
@@ -111,7 +110,6 @@ fun HighlightableText(
             ) {
                 status      = TextToolbarStatus.Shown
                 pendingCopy = onCopyRequested
-                onScrollEnabled?.invoke(false)
 
                 val toolbarW = with(density) { 280.dp.toPx() }.toInt()
                 val toolbarH = with(density) { 106.dp.toPx() }.toInt()
@@ -139,7 +137,6 @@ fun HighlightableText(
                 status = TextToolbarStatus.Hidden
                 showPicker = false
                 userDismissed = false   // reset so next selection shows toolbar
-                onScrollEnabled?.invoke(true)
             }
         }
     }
@@ -317,7 +314,7 @@ fun HighlightableText(
                 alignment        = Alignment.TopStart,
                 offset           = removeOffset,
                 onDismissRequest = { removeTarget = null },
-                properties       = PopupProperties(focusable = true, dismissOnClickOutside = true)
+                properties       = PopupProperties(focusable = false)
             ) {
                 Box(
                     modifier = Modifier
@@ -344,7 +341,7 @@ fun HighlightableText(
                 alignment        = Alignment.TopStart,
                 offset           = popupOffset,
                 onDismissRequest = { userDismissed = true; showPicker = false; focusManager.clearFocus(force = true) },
-                properties       = PopupProperties(focusable = true, dismissOnClickOutside = true)
+                properties       = PopupProperties(focusable = false)
             ) {
                 Box(modifier = Modifier.width(280.dp)) {
                     // Close button floating at top-right corner, OUTSIDE the card

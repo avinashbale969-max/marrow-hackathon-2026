@@ -118,8 +118,8 @@ fun ImageNotesScreen(
                 text                = notesContent,
                 highlights          = highlights,
                 notes               = tagNotes,
-                onHighlight         = { text, color, _ ->
-                    viewModel.addHighlight(lessonKey, text, color)
+                onHighlight         = { text, color, offset ->
+                    viewModel.addHighlight(lessonKey, text, color, offset)
                 },
                 onTagSelected       = { sel -> pendingTagQuote = sel; showTagDialog = true },
                 onDeleteTag         = { viewModel.deleteNote(it) },

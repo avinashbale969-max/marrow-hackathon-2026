@@ -5,6 +5,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -88,17 +89,6 @@ fun DashboardScreen(
                         Spacer(Modifier.width(12.dp))
                         Text("Marrow", fontWeight = FontWeight.Bold, fontSize = 20.sp,
                             color = Color.White)
-                        Spacer(Modifier.width(6.dp))
-                        // PRO badge
-                        Box(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(4.dp))
-                                .background(Color(0xFFFDD835))
-                                .padding(horizontal = 6.dp, vertical = 2.dp)
-                        ) {
-                            Text("PRO", fontSize = 11.sp, fontWeight = FontWeight.Bold,
-                                color = Color(0xFF333333))
-                        }
                         Spacer(Modifier.weight(1f))
                         Icon(Icons.Filled.BookmarkBorder, null, tint = Color.White,
                             modifier = Modifier.size(24.dp))
@@ -280,14 +270,6 @@ private fun DrawerContent(
                 }
                 Text(userName, fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.White)
                 Text("demo@marrow.com", fontSize = 12.sp, color = Color.White.copy(alpha = 0.8f))
-                Box(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(4.dp))
-                        .background(Color(0xFFFDD835))
-                        .padding(horizontal = 8.dp, vertical = 2.dp)
-                ) {
-                    Text("PRO", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = Color(0xFF333333))
-                }
             }
         }
 

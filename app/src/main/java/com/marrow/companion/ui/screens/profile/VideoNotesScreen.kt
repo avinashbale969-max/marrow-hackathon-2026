@@ -48,11 +48,11 @@ class VideoNotesViewModel @Inject constructor(
 
     fun getNotes(subjectId: Long) = noteDao.getForQuestion(-subjectId)
 
-    fun addHighlight(subjectId: Long, text: String, color: HighlightColor) {
+    fun addHighlight(subjectId: Long, text: String, color: HighlightColor, startOffset: Int = -1) {
         viewModelScope.launch {
             highlightDao.deleteByQuestionAndText(-subjectId, text)
             highlightDao.insert(HighlightEntity(questionId = -subjectId,
-                text = text, color = color.name))
+                text = text, color = color.name, startOffset = startOffset))
         }
     }
 
@@ -172,8 +172,8 @@ fun VideoNotesScreen(
                     text                = notesText,
                     highlights          = highlights,
                     notes               = tagNotes,
-                    onHighlight         = { text, color, _ ->
-                        viewModel.addHighlight(subjectId, text, color)
+                    onHighlight         = { text, color, offset ->
+                        viewModel.addHighlight(subjectId, text, color, offset)
                     },
                     onTagSelected       = { sel -> pendingTagQuote = sel; showTagDialog = true },
                     onDeleteTag         = { viewModel.deleteNote(it) },

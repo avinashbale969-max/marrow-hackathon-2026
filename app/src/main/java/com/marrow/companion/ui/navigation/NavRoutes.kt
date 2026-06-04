@@ -38,8 +38,9 @@ sealed class NavRoutes(val route: String) {
         fun create(subjectId: Long, subjectName: String, lessonTitle: String) =
             "video_notes/$subjectId/${android.net.Uri.encode(subjectName)}/${android.net.Uri.encode(lessonTitle)}"
     }
-    object SubjectNotes : NavRoutes("subject_notes/{subjectId}") {
-        fun create(subjectId: Long) = "subject_notes/$subjectId"
+    object SubjectNotes : NavRoutes("subject_notes/{subjectId}?tab={tab}&color={color}") {
+        fun create(subjectId: Long, tab: Int = 0, color: String = "") =
+            "subject_notes/$subjectId?tab=$tab&color=$color"
     }
     object QuestionExplanation : NavRoutes("explanation/{questionId}?selectedOptionId={selectedOptionId}") {
         fun create(questionId: Long, selectedOptionId: Long = -1L) =
