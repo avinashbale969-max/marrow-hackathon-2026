@@ -305,6 +305,15 @@ fun HighlightableText(
                                 Spacer(Modifier.weight(1f))
                                 Text("Highlight", color = Color.White, fontSize = 14.sp,
                                     fontWeight = FontWeight.Medium)
+                                Box(
+                                    modifier = Modifier
+                                        .size(32.dp)
+                                        .clickable { showPicker = false },
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(Icons.Filled.Close, null, tint = Color(0xFF888888),
+                                        modifier = Modifier.size(16.dp))
+                                }
                             }
 
                             HorizontalDivider(color = Color.White.copy(alpha = 0.15f), thickness = 0.5.dp)
@@ -337,8 +346,6 @@ fun HighlightableText(
                                         showPicker = false
                                     }
                                 }
-                                Icon(Icons.Filled.Close, null, tint = Color(0xFF888888),
-                                    modifier = Modifier.size(14.dp).clickable { showPicker = false })
                             }
                         }
                     }
