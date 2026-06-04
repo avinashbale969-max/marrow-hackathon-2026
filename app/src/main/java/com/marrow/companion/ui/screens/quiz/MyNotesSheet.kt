@@ -101,47 +101,15 @@ fun MyNotesSheet(
             ) {
                 Text("My Notes", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 18.sp)
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    if (selectedTab == 0) {
-                        // Add note button
-                        IconButton(onClick = { showNoteInput = true }, modifier = Modifier.size(32.dp)) {
-                            Icon(Icons.Filled.Add, null, tint = Color.White)
-                        }
-                    }
                     IconButton(onClick = onDismiss, modifier = Modifier.size(32.dp)) {
                         Icon(Icons.Filled.Close, null, tint = Color.White)
                     }
                 }
             }
 
-            // ── Tabs: Notes | Highlights ──────────────────────────────────────
-            Row(modifier = Modifier.fillMaxWidth().background(Color.White)) {
-                listOf(
-                    Triple("Notes",      Icons.Filled.Edit,        0),
-                    Triple("Highlights", Icons.Filled.FormatPaint,  1)
-                ).forEach { (label, icon, idx) ->
-                    FolderTab(
-                        label    = label,
-                        icon     = icon,
-                        selected = selectedTab == idx,
-                        count    = if (idx == 0) notes.size else highlights.size,
-                        modifier = Modifier.weight(1f),
-                        onClick  = { selectedTab = idx; hlColorFilter = null; noteTagFilter = null }
-                    )
-                }
-            }
-
-            // ── Content ───────────────────────────────────────────────────────
-            when (selectedTab) {
-                0 -> NotesTab(
-                    notes        = notes,
-                    tagFilter    = noteTagFilter,
-                    onFilterTag  = { noteTagFilter = if (noteTagFilter == it) null else it },
-                    onDelete     = onDeleteNote,
-                    onEdit       = { editingNote = it },
-                    onAddNote    = { showNoteInput = true },
-                    onAttachNote = { quote -> pendingQuote = quote; showNoteInput = true }
-                )
-                else -> HighlightsTab(
+            // ── Highlights only (Notes tab removed) ───────────────────────────
+            run {
+                HighlightsTab(
                     highlights    = highlights,
                     colorFilter   = hlColorFilter,
                     onFilterColor = { hlColorFilter = if (hlColorFilter == it) null else it },

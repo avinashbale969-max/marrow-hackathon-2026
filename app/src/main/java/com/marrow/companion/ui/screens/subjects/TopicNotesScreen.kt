@@ -69,38 +69,16 @@ fun TopicNotesScreen(
     ) { padding ->
         Column(modifier = Modifier.fillMaxSize().padding(padding)) {
 
-            // Tab bar
-            Row(modifier = Modifier.fillMaxWidth().background(Color.White)) {
-                NotesTab(
-                    label    = "Notes",
-                    count    = notes.size,
-                    selected = selectedTab == 0,
-                    modifier = Modifier.weight(1f)
-                ) { selectedTab = 0 }
-                NotesTab(
-                    label    = "Highlights",
-                    count    = highlights.size,
-                    selected = selectedTab == 1,
-                    modifier = Modifier.weight(1f)
-                ) { selectedTab = 1 }
-            }
+            // Highlights only (Notes tab removed)
             HorizontalDivider(color = Color(0xFFEEEEEE))
 
-            val isEmpty = if (selectedTab == 0) notes.isEmpty() else highlights.isEmpty()
-
-            if (isEmpty) {
+            if (highlights.isEmpty()) {
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Icon(
-                            if (selectedTab == 0) Icons.Filled.Edit else Icons.Filled.Highlight,
-                            null, tint = Color(0xFFCCCCCC), modifier = Modifier.size(48.dp)
-                        )
-                        Text(
-                            if (selectedTab == 0) "No notes for this lesson"
-                            else "No highlights for this lesson",
-                            color = Color.Gray
-                        )
+                        Icon(Icons.Filled.Highlight, null,
+                            tint = Color(0xFFCCCCCC), modifier = Modifier.size(48.dp))
+                        Text("No highlights for this lesson", color = Color.Gray)
                     }
                 }
             } else {
@@ -109,14 +87,10 @@ fun TopicNotesScreen(
                     contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    if (selectedTab == 0) {
-                        items(notes) { note -> NoteCard(note) }
-                    } else {
-                        items(highlights) { hl ->
-                            HighlightCard(hl,
-                                onDelete   = { viewModel.deleteHighlight(hl.id) },
-                                onMcqClick = onMcqClick)
-                        }
+                    items(highlights) { hl ->
+                        HighlightCard(hl,
+                            onDelete   = { viewModel.deleteHighlight(hl.id) },
+                            onMcqClick = onMcqClick)
                     }
                 }
             }

@@ -342,15 +342,11 @@ fun SubjectNotesScreen(
                     }
                 }
             } else {
-            // Normal tabs when not searching — Notes | Highlights only
-            Row(modifier = Modifier.fillMaxWidth().background(Color.White)) {
-                NotesDetailTab("Notes",      notes.size,      selectedTab == 0, Modifier.weight(1f)) { selectedTab = 0 }
-                NotesDetailTab("Highlights", highlights.size, selectedTab == 1, Modifier.weight(1f)) { selectedTab = 1 }
-            }
+            // Highlights only (Notes tab removed)
             HorizontalDivider(color = Color(0xFFEEEEEE))
 
-            // Color filter chips — shown only in Highlights tab
-            if (selectedTab == 1) {
+            // Color filter chips
+            if (true) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -392,12 +388,10 @@ fun SubjectNotesScreen(
 
             val displayedHighlights = if (colorFilter.isEmpty()) highlights
                                       else highlights.filter { it.color == colorFilter }
-            val currentItems = if (selectedTab == 0) notes else displayedHighlights
-            val emptyMsg = if (selectedTab == 0) "No notes yet"
-                           else if (colorFilter.isEmpty()) "No highlights yet"
+            val emptyMsg = if (colorFilter.isEmpty()) "No highlights yet"
                            else "No ${colorFilter.lowercase()} highlights yet"
 
-            if (currentItems.isEmpty()) {
+            if (displayedHighlights.isEmpty()) {
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Text(emptyMsg, color = Color.Gray, modifier = Modifier.padding(32.dp))
                 }
@@ -407,16 +401,10 @@ fun SubjectNotesScreen(
                     contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
                     verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    if (selectedTab == 0) {
-                        items(notes, key = { it.id }) {
-                            NoteCard(it, showSubject = isAll, onMcqClick = onMcqClick)
-                        }
-                    } else {
-                        items(displayedHighlights, key = { it.id }) {
-                            HighlightCard(it, showSubject = isAll,
-                                onDelete = { viewModel.deleteHighlight(it.id) },
-                                onMcqClick = onMcqClick)
-                        }
+                    items(displayedHighlights, key = { it.id }) {
+                        HighlightCard(it, showSubject = isAll,
+                            onDelete = { viewModel.deleteHighlight(it.id) },
+                            onMcqClick = onMcqClick)
                     }
                 }
             }
