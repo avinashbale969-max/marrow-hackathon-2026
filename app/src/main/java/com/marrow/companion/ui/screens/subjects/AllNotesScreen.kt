@@ -365,7 +365,7 @@ fun SubjectNotesScreen(
                     modifier      = Modifier
                         .fillMaxWidth()
                         .background(Color.White)
-                        .padding(horizontal = 12.dp, vertical = 8.dp),
+                        .padding(horizontal = 16.dp, vertical = 10.dp),
                     colors        = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor   = Teal,
                         unfocusedBorderColor = Color(0xFFE0E0E0)
