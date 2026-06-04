@@ -114,9 +114,10 @@ fun AppNavGraph() {
                 val qId   = backStack.arguments?.getLong("questionId")       ?: return@composable
                 val selId = backStack.arguments?.getLong("selectedOptionId") ?: -1L
                 QuestionExplanationScreen(
-                    questionId       = qId,
+                    questionId        = qId,
                     initialSelectedId = selId.takeIf { it != -1L },
-                    onBack           = { navController.popBackStack() }
+                    onBack            = { navController.popBackStack() },
+                    onMcqClick        = { id -> navController.navigate(NavRoutes.QuestionExplanation.create(id)) }
                 )
             }
 
@@ -158,10 +159,15 @@ fun AppNavGraph() {
                 val tab       = backStack.arguments?.getInt("tab")        ?: 0
                 val color     = backStack.arguments?.getString("color")   ?: ""
                 SubjectNotesScreen(
-                    subjectId           = subjectId,
-                    onBack              = { navController.popBackStack() },
-                    initialTab          = tab,
-                    initialColorFilter  = color
+                    subjectId          = subjectId,
+                    onBack             = { navController.popBackStack() },
+                    initialTab         = tab,
+                    initialColorFilter = color,
+                    onMcqClick         = { questionId ->
+                        navController.navigate(
+                            NavRoutes.QuestionExplanation.create(questionId)
+                        )
+                    }
                 )
             }
 
@@ -262,9 +268,10 @@ fun AppNavGraph() {
                 val subjectId = backStack.arguments?.getLong("subjectId") ?: return@composable
                 val topicId   = backStack.arguments?.getLong("topicId")   ?: return@composable
                 TopicNotesScreen(
-                    subjectId = subjectId,
-                    topicId   = topicId,
-                    onBack    = { navController.popBackStack() }
+                    subjectId  = subjectId,
+                    topicId    = topicId,
+                    onBack     = { navController.popBackStack() },
+                    onMcqClick = { qId -> navController.navigate(NavRoutes.QuestionExplanation.create(qId)) }
                 )
             }
 
@@ -286,7 +293,8 @@ fun AppNavGraph() {
                     topicId    = topicId,
                     random     = random,
                     startFresh = fresh,
-                    onFinish   = { navController.popBackStack() }
+                    onFinish   = { navController.popBackStack() },
+                    onMcqClick = { qId -> navController.navigate(NavRoutes.QuestionExplanation.create(qId)) }
                 )
             }
 

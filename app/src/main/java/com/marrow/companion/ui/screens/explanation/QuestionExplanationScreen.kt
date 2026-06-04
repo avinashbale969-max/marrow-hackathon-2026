@@ -183,6 +183,7 @@ fun QuestionExplanationScreen(
     questionId: Long,
     initialSelectedId: Long? = null,
     onBack: () -> Unit,
+    onMcqClick: ((Long) -> Unit)? = null,
     viewModel: QuestionExplanationViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
@@ -210,6 +211,7 @@ fun QuestionExplanationScreen(
             onDeleteNote      = { viewModel.deleteNote(it) },
             onAddNote         = { text, tag, quote -> viewModel.addNote(text, tag, quote) },
             onEditNote        = { note, text, tag -> viewModel.updateNote(note, text, tag) },
+            onMcqClick        = onMcqClick,
             onDismiss         = { showNotesSheet = false }
         )
     }
@@ -350,6 +352,7 @@ fun QuestionExplanationScreen(
                             highlights          = state.highlights,
                             notes               = tagNotes,
                             onHighlight         = { text, color, offset -> viewModel.addHighlight(text, color, offset) },
+                            onDeleteHighlight   = { hl -> viewModel.deleteHighlight(hl) },
                             onTagSelected       = { sel -> pendingTagQuote = sel; showTagDialog = true },
                             onDeleteTag         = { note -> viewModel.deleteNote(note) },
                             onEditTag           = { note, txt ->

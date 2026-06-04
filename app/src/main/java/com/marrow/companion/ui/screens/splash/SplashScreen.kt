@@ -59,7 +59,7 @@ private val pqrstPoints = listOf(
 fun SplashScreen(onNavigate: () -> Unit) {
 
     // ── Auto-navigate after 2800 ms ──────────────────────────────────────────
-    LaunchedEffect(Unit) { delay(2800); onNavigate() }
+    LaunchedEffect(Unit) { delay(1000); onNavigate() }
 
     // ── Animation state ──────────────────────────────────────────────────────
     val heartScale = remember { Animatable(1f) }

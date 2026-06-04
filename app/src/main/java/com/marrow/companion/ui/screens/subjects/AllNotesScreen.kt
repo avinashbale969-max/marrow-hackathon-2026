@@ -18,6 +18,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.draw.shadow
@@ -189,6 +190,7 @@ fun SubjectNotesScreen(
     onBack: () -> Unit,
     initialTab: Int = 0,
     initialColorFilter: String = "",
+    onMcqClick: (Long) -> Unit = {},
     viewModel: SubjectsViewModel = hiltViewModel()
 ) {
     val isAll = subjectId == 0L
@@ -326,14 +328,15 @@ fun SubjectNotesScreen(
                         if (filteredNotes.isNotEmpty()) {
                             item { SearchSectionHeader("✎ Notes (${filteredNotes.size})") }
                             items(filteredNotes, key = { "n${it.id}" }) { note ->
-                                NoteCard(note, showSubject = isAll)
+                                NoteCard(note, showSubject = isAll, onMcqClick = onMcqClick)
                             }
                         }
                         if (filteredHighlights.isNotEmpty()) {
                             item { SearchSectionHeader("Highlights (${filteredHighlights.size})") }
                             items(filteredHighlights, key = { "h${it.id}" }) { hl ->
                                 HighlightCard(hl, showSubject = isAll,
-                                    onDelete = { viewModel.deleteHighlight(hl.id) })
+                                    onDelete = { viewModel.deleteHighlight(hl.id) },
+                                    onMcqClick = onMcqClick)
                             }
                         }
                     }
@@ -405,11 +408,14 @@ fun SubjectNotesScreen(
                     verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     if (selectedTab == 0) {
-                        items(notes, key = { it.id }) { NoteCard(it, showSubject = isAll) }
+                        items(notes, key = { it.id }) {
+                            NoteCard(it, showSubject = isAll, onMcqClick = onMcqClick)
+                        }
                     } else {
                         items(displayedHighlights, key = { it.id }) {
                             HighlightCard(it, showSubject = isAll,
-                                onDelete = { viewModel.deleteHighlight(it.id) })
+                                onDelete = { viewModel.deleteHighlight(it.id) },
+                                onMcqClick = onMcqClick)
                         }
                     }
                 }
@@ -463,7 +469,11 @@ private fun NotesDetailTab(
 // ── Cards with subject name label ─────────────────────────────────────────────
 
 @Composable
-private fun NoteCard(note: NoteWithSubject, showSubject: Boolean) {
+private fun NoteCard(
+    note: NoteWithSubject,
+    showSubject: Boolean,
+    onMcqClick: ((Long) -> Unit)? = null
+) {
     val tagColor = when (note.tag) {
         NoteTag.IMP.name   -> Color(0xFFFFC107)
         NoteTag.DOUBT.name -> Color(0xFF2196F3)
@@ -509,11 +519,18 @@ private fun NoteCard(note: NoteWithSubject, showSubject: Boolean) {
                 }
             }
 
-            // Subject • Topic (always show)
+            // Subject • Topic
             SubjectTopicLabel(
                 subjectName = note.subjectName,
                 topicName   = note.topicName,
                 color       = Color(0xFF888888)
+            )
+
+            // MCQ ID pill
+            McqIdPill(
+                questionId = note.questionId,
+                accentColor = Teal,
+                onClick     = onMcqClick
             )
         }
     }
@@ -553,6 +570,39 @@ private fun TagCard(tag: NoteWithSubject, showSubject: Boolean) {
     }
 }
 
+/** Tappable MCQ-ID badge. Formats questionId as "MRW-XXXXX". */
+@Composable
+private fun McqIdPill(
+    questionId: Long,
+    accentColor: Color,
+    onClick: ((Long) -> Unit)?
+) {
+    val label = "MRW-${questionId.toString().padStart(5, '0')}"
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.End,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        if (onClick != null) {
+            Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(20.dp))
+                    .background(accentColor)
+                    .clickable { onClick(questionId) }
+                    .padding(horizontal = 12.dp, vertical = 5.dp)
+            ) {
+                Text(
+                    label,
+                    fontSize   = 11.sp,
+                    fontWeight = FontWeight.Bold,
+                    fontFamily = FontFamily.Monospace,
+                    color      = Color.White
+                )
+            }
+        }
+    }
+}
+
 @Composable
 private fun SubjectTopicLabel(subjectName: String, topicName: String?, color: Color) {
     Row(
@@ -572,7 +622,8 @@ private fun SubjectTopicLabel(subjectName: String, topicName: String?, color: Co
 private fun HighlightCard(
     hl: HighlightWithSubject,
     showSubject: Boolean,
-    onDelete: (() -> Unit)? = null
+    onDelete: (() -> Unit)? = null,
+    onMcqClick: ((Long) -> Unit)? = null
 ) {
     var showConfirm by remember { mutableStateOf(false) }
     if (showConfirm) {
@@ -609,6 +660,13 @@ private fun HighlightCard(
 
             SubjectTopicLabel(subjectName = hl.subjectName, topicName = hl.topicName,
                 color = Color(0xFF888888))
+
+            // MCQ ID pill
+            McqIdPill(
+                questionId  = hl.questionId,
+                accentColor = accent,
+                onClick     = onMcqClick
+            )
         }
     }
 }

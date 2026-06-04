@@ -15,6 +15,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -40,7 +41,8 @@ fun QuizReviewScreen(
     bookmarked: List<QuestionWithOptions>,
     notesMap: Map<Long, List<NoteEntity>>,
     highlightsMap: Map<Long, List<HighlightEntity>>,
-    onDone: () -> Unit
+    onDone: () -> Unit,
+    onMcqClick: ((Long) -> Unit)? = null
 ) {
     val accuracy     = if (total > 0) (correct * 100) / total else 0
     var selectedTab  by remember { mutableIntStateOf(0) }
@@ -148,7 +150,8 @@ fun QuizReviewScreen(
                         NotesHighlightsCard(
                             questionId = qId,
                             notes      = notes,
-                            highlights = highlights
+                            highlights = highlights,
+                            onMcqClick = onMcqClick
                         )
                     }
                 }
@@ -264,7 +267,8 @@ private fun BookmarkedQuestionCard(qwo: QuestionWithOptions) {
 private fun NotesHighlightsCard(
     questionId: Long,
     notes: List<NoteEntity>,
-    highlights: List<HighlightEntity>
+    highlights: List<HighlightEntity>,
+    onMcqClick: ((Long) -> Unit)? = null
 ) {
     val fmt = SimpleDateFormat("HH:mm", Locale.getDefault())
 
@@ -276,6 +280,23 @@ private fun NotesHighlightsCard(
     ) {
         Column(modifier = Modifier.padding(14.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp)) {
+
+            // MCQ ID pill
+            if (onMcqClick != null) {
+                val label = "MRW-${questionId.toString().padStart(5, '0')}"
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(20.dp))
+                            .background(TealHeader)
+                            .clickable { onMcqClick(questionId) }
+                            .padding(horizontal = 12.dp, vertical = 5.dp)
+                    ) {
+                        Text(label, fontSize = 11.sp, fontWeight = FontWeight.Bold,
+                             fontFamily = FontFamily.Monospace, color = Color.White)
+                    }
+                }
+            }
 
             // Highlights
             highlights.forEach { hl ->
