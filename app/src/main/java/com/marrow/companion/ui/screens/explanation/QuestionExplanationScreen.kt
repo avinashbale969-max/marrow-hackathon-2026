@@ -1,6 +1,7 @@
 package com.marrow.companion.ui.screens.explanation
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -238,13 +239,6 @@ fun QuestionExplanationScreen(
                     titleContentColor = Color.White,
                     navigationIconContentColor = Color.White
                 ),
-                actions = {
-                    TextButton(onClick = { showNotesSheet = true }) {
-                        Text("My Notes", color = Color.White,
-                            fontWeight = androidx.compose.ui.text.font.FontWeight.Medium,
-                            fontSize = 14.sp)
-                    }
-                }
             )
         },
         containerColor = Color.White
@@ -415,43 +409,57 @@ private fun ExplOptionRow(
     val label      = labels.getOrElse(option.optionIndex) { "?" }
     val pct        = if (answered) optionStats.getOrDefault(option.id, 0) * 100 / totalVotes else null
 
-    val textColor = when {
-        !answered        -> Color(0xFF555555)
+    // QBank-style card colours
+    val bgColor = when {
+        !answered        -> Color.White
         option.isCorrect -> CorrectGreen
         isSelected       -> WrongRed
-        else             -> DimGray
+        else             -> Color.White
     }
-    val isBold = answered && (option.isCorrect || isSelected)
+    val borderColor = when {
+        !answered        -> Color(0xFFE2E2E2)
+        option.isCorrect -> CorrectGreen
+        isSelected       -> WrongRed
+        else             -> Color(0xFFE2E2E2)
+    }
+    val textColor = when {
+        !answered                      -> Color(0xFF333333)
+        option.isCorrect || isSelected -> Color.White
+        else                           -> DimGray
+    }
+    val labelColor = when {
+        !answered                      -> Color(0xFFAAAAAA)
+        option.isCorrect || isSelected -> Color.White
+        else                           -> Color(0xFFCCCCCC)
+    }
 
-    Row(modifier = Modifier.fillMaxWidth().clickable(enabled = !answered, onClick = onClick)
-        .padding(vertical = 2.dp),
-        verticalAlignment = Alignment.Top,
-        horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-
-        Box(modifier = Modifier.size(22.dp).padding(top = 1.dp), contentAlignment = Alignment.Center) {
-            when {
-                answered && option.isCorrect -> Box(
-                    Modifier.size(20.dp).clip(CircleShape).background(CorrectGreen),
-                    contentAlignment = Alignment.Center
-                ) { Icon(Icons.Filled.Check, null, tint = Color.White, modifier = Modifier.size(13.dp)) }
-                answered && isSelected && !option.isCorrect -> Box(
-                    Modifier.size(20.dp).clip(CircleShape).background(WrongRed),
-                    contentAlignment = Alignment.Center
-                ) { Icon(Icons.Filled.Close, null, tint = Color.White, modifier = Modifier.size(13.dp)) }
-            }
-        }
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(8.dp))
+            .background(bgColor)
+            .border(1.dp, borderColor, RoundedCornerShape(8.dp))
+            .clickable(enabled = !answered, onClick = onClick)
+            .padding(horizontal = 16.dp, vertical = 14.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        Text("$label)", fontSize = 15.sp, color = labelColor,
+            fontWeight = FontWeight.Medium,
+            modifier = Modifier.width(26.dp))
 
         Text(
             buildAnnotatedString {
-                withStyle(SpanStyle(fontWeight = if (isBold) FontWeight.Bold else FontWeight.Normal,
-                    color = textColor)) {
-                    append("$label.  ${option.optionText}")
-                }
+                withStyle(SpanStyle(
+                    fontWeight = if (answered && (option.isCorrect || isSelected)) FontWeight.SemiBold else FontWeight.Normal,
+                    color = textColor
+                )) { append(option.optionText) }
                 if (pct != null) {
                     append("  ")
-                    withStyle(SpanStyle(color = DimGray, fontSize = 12.sp, fontWeight = FontWeight.Normal)) {
-                        append("[$pct%]")
-                    }
+                    withStyle(SpanStyle(
+                        color = if (option.isCorrect || isSelected) Color.White.copy(0.8f) else DimGray,
+                        fontSize = 12.sp, fontWeight = FontWeight.Normal
+                    )) { append("[$pct%]") }
                 }
             },
             fontSize = 15.sp, lineHeight = 22.sp, modifier = Modifier.weight(1f)

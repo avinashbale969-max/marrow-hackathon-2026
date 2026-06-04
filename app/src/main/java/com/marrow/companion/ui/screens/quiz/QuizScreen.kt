@@ -409,12 +409,6 @@ private fun ExplanationScreen(
                         Icon(Icons.Filled.Close, null)
                     }
                 },
-                actions = {
-                    TextButton(onClick = { showNotesSheet = true }) {
-                        Text("My Notes", color = Color.White,
-                            fontWeight = FontWeight.Medium, fontSize = 14.sp)
-                    }
-                },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = TealHeader,
                     titleContentColor = Color.White,
