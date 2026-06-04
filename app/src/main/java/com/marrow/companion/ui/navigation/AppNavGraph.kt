@@ -1,6 +1,8 @@
 package com.marrow.companion.ui.navigation
 
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -43,6 +45,7 @@ fun AppNavGraph() {
     val showLogin     = currentRoute == NavRoutes.Login.route
 
     Scaffold(
+        contentWindowInsets = WindowInsets.safeDrawing,
         bottomBar = {
             if (showBottomBar) {
                 MarrowBottomNav(
