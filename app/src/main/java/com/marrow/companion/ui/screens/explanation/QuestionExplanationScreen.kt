@@ -111,13 +111,13 @@ class QuestionExplanationViewModel @Inject constructor(
         }
     }
 
-    fun addHighlight(text: String, color: HighlightColor) {
+    fun addHighlight(text: String, color: HighlightColor, startOffset: Int = -1) {
         val qwo = _state.value.qwo ?: return
         viewModelScope.launch {
             // Delete existing highlight with same text (colour update — keep only latest)
             highlightDao.deleteByQuestionAndText(qwo.question.id, text)
             highlightDao.insert(HighlightEntity(questionId = qwo.question.id,
-                text = text, color = color.name))
+                text = text, color = color.name, startOffset = startOffset))
         }
     }
 
@@ -349,7 +349,7 @@ fun QuestionExplanationScreen(
                             text                = qwo.question.explanation,
                             highlights          = state.highlights,
                             notes               = tagNotes,
-                            onHighlight         = { text, color -> viewModel.addHighlight(text, color) },
+                            onHighlight         = { text, color, offset -> viewModel.addHighlight(text, color, offset) },
                             onTagSelected       = { sel -> pendingTagQuote = sel; showTagDialog = true },
                             onDeleteTag         = { note -> viewModel.deleteNote(note) },
                             onEditTag           = { note, txt ->

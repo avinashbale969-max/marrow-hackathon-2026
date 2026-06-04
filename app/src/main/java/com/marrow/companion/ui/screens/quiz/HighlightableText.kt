@@ -58,7 +58,7 @@ fun HighlightableText(
     text: String,
     highlights: List<HighlightEntity>,
     notes: List<NoteEntity> = emptyList(),
-    onHighlight: (String, HighlightColor) -> Unit,
+    onHighlight: (String, HighlightColor, Int) -> Unit,
     onTagSelected: ((String) -> Unit)? = null,
     onDeleteTag: ((NoteEntity) -> Unit)? = null,
     onEditTag: ((NoteEntity, String) -> Unit)? = null,
@@ -73,10 +73,11 @@ fun HighlightableText(
     val view             = LocalView.current
     val focusManager     = androidx.compose.ui.platform.LocalFocusManager.current
 
-    var showPicker        by remember { mutableStateOf(false) }
-    var userDismissed     by remember { mutableStateOf(false) }
-    var pendingCopy       by remember { mutableStateOf<(() -> Unit)?>(null) }
-    var lastHighlightText by remember { mutableStateOf("") }
+    var showPicker            by remember { mutableStateOf(false) }
+    var userDismissed         by remember { mutableStateOf(false) }
+    var pendingCopy           by remember { mutableStateOf<(() -> Unit)?>(null) }
+    var lastHighlightText     by remember { mutableStateOf("") }
+    var pendingSelectionOffset by remember { mutableIntStateOf(-1) }
     var popupOffset  by remember { mutableStateOf(IntOffset.Zero) }
     // Store LayoutCoordinates so positionInWindow() is called FRESH inside showMenu
     // (fresh call walks the transform chain including current scroll transform)
@@ -120,6 +121,13 @@ fun HighlightableText(
                 val x        = (cx - boxX - toolbarW / 2).coerceIn(0, view.width - toolbarW - 8)
                 val y        = (rect.top.toInt() - boxY - toolbarH - caret - 8).coerceAtLeast(0)
 
+                // Compute which character the selection midpoint falls on
+                val relX = (rect.left + rect.right) / 2f - boxX
+                val relY = (rect.top  + rect.bottom) / 2f - boxY
+                pendingSelectionOffset = textLayout?.getOffsetForPosition(
+                    androidx.compose.ui.geometry.Offset(relX, relY)
+                ) ?: -1
+
                 popupOffset = IntOffset(x, y)
                 if (!userDismissed) showPicker = true
             }
@@ -137,17 +145,22 @@ fun HighlightableText(
         buildAnnotatedString {
             append(text)
             highlights.sortedByDescending { it.text.length }.forEach { hl ->
-                var start = 0
-                while (true) {
-                    val idx = text.indexOf(hl.text, start)
-                    if (idx < 0) break
+                // Use the stored offset when available — highlights only that exact occurrence.
+                // Fall back to first occurrence only for legacy entries (startOffset == -1).
+                val idx = if (hl.startOffset >= 0 &&
+                              hl.startOffset + hl.text.length <= text.length &&
+                              text.substring(hl.startOffset, hl.startOffset + hl.text.length) == hl.text) {
+                    hl.startOffset
+                } else {
+                    text.indexOf(hl.text)
+                }
+                if (idx >= 0) {
                     addStyle(
                         SpanStyle(
                             background = if (hl.color == HighlightColor.ORANGE.name) OrangeBg else GreenBg,
                             fontWeight = FontWeight.Medium
                         ), idx, idx + hl.text.length
                     )
-                    start = idx + hl.text.length
                 }
             }
         }
@@ -312,14 +325,14 @@ fun HighlightableText(
                                 horizontalArrangement = Arrangement.spacedBy(10.dp)
                             ) {
                                 ColorSwatch(GreenHL) {
-                                    doHighlight(HighlightColor.GREEN, pendingCopy, clipboardManager, coroutineScope) { t ->
-                                        onHighlight(t, HighlightColor.GREEN); lastHighlightText = t; showPicker = false
+                                    doHighlight(HighlightColor.GREEN, pendingCopy, clipboardManager, coroutineScope, text, pendingSelectionOffset) { t, offset ->
+                                        onHighlight(t, HighlightColor.GREEN, offset); lastHighlightText = t; showPicker = false
                                         coroutineScope.launch { flashAlpha.snapTo(1f); flashAlpha.animateTo(0f, tween(700)) }
                                     }
                                 }
                                 ColorSwatch(OrangeHL) {
-                                    doHighlight(HighlightColor.ORANGE, pendingCopy, clipboardManager, coroutineScope) { t ->
-                                        onHighlight(t, HighlightColor.ORANGE); lastHighlightText = t; showPicker = false
+                                    doHighlight(HighlightColor.ORANGE, pendingCopy, clipboardManager, coroutineScope, text, pendingSelectionOffset) { t, offset ->
+                                        onHighlight(t, HighlightColor.ORANGE, offset); lastHighlightText = t; showPicker = false
                                         coroutineScope.launch { flashAlpha.snapTo(1f); flashAlpha.animateTo(0f, tween(700)) }
                                     }
                                 }
@@ -335,8 +348,8 @@ fun HighlightableText(
                                 horizontalArrangement = Arrangement.spacedBy(14.dp)
                             ) {
                                 ActionText("✎ Highlight") {
-                                    doHighlight(HighlightColor.GREEN, pendingCopy, clipboardManager, coroutineScope) { t ->
-                                        onHighlight(t, HighlightColor.GREEN); lastHighlightText = t; showPicker = false
+                                    doHighlight(HighlightColor.GREEN, pendingCopy, clipboardManager, coroutineScope, text, pendingSelectionOffset) { t, offset ->
+                                        onHighlight(t, HighlightColor.GREEN, offset); lastHighlightText = t; showPicker = false
                                         coroutineScope.launch { flashAlpha.snapTo(1f); flashAlpha.animateTo(0f, tween(700)) }
                                     }
                                 }
@@ -491,14 +504,51 @@ private fun doHighlight(
     pendingCopy: (() -> Unit)?,
     clipboardManager: androidx.compose.ui.platform.ClipboardManager,
     scope: kotlinx.coroutines.CoroutineScope,
-    onDone: (String) -> Unit
+    fullText: String,
+    selectionOffset: Int,
+    onDone: (String, Int) -> Unit
 ) {
     scope.launch {
         pendingCopy?.invoke()
         delay(80)
         val selected = clipboardManager.getText()?.text?.trim() ?: ""
-        if (selected.isNotBlank()) onDone(selected)
+        if (selected.isNotBlank()) {
+            val startOffset = findOccurrenceStart(fullText, selected, selectionOffset)
+            onDone(selected, startOffset)
+        }
     }
+}
+
+/**
+ * Returns the start index of the occurrence of [selected] in [fullText] that
+ * contains (or is closest to) [nearOffset].  Returns -1 if [selected] is not
+ * found at all.
+ */
+private fun findOccurrenceStart(fullText: String, selected: String, nearOffset: Int): Int {
+    if (nearOffset < 0) return fullText.indexOf(selected)
+
+    // First pass: find the occurrence whose range contains nearOffset
+    var pos = 0
+    while (true) {
+        val idx = fullText.indexOf(selected, pos)
+        if (idx < 0) break
+        if (idx <= nearOffset && nearOffset <= idx + selected.length) return idx
+        pos = idx + 1
+    }
+
+    // Second pass: find the occurrence whose midpoint is closest to nearOffset
+    var bestIdx  = -1
+    var bestDist = Int.MAX_VALUE
+    pos = 0
+    while (true) {
+        val idx = fullText.indexOf(selected, pos)
+        if (idx < 0) break
+        val mid  = idx + selected.length / 2
+        val dist = kotlin.math.abs(mid - nearOffset)
+        if (dist < bestDist) { bestDist = dist; bestIdx = idx }
+        pos = idx + 1
+    }
+    return bestIdx
 }
 
 @Composable

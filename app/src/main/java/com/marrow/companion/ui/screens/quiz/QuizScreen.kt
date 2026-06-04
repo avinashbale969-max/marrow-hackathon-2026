@@ -577,7 +577,7 @@ private fun ExplanationScreen(
                 text                = q.question.explanation,
                 highlights          = state.highlights,
                 notes               = tagNotes,
-                onHighlight         = { text, color -> viewModel.addHighlight(text, color) },
+                onHighlight         = { text, color, offset -> viewModel.addHighlight(text, color, offset) },
                 onTagSelected       = { selectedText ->
                     pendingTagQuote = selectedText
                     showTagDialog   = true

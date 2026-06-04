@@ -22,5 +22,6 @@ data class HighlightEntity(
     val questionId: Long,
     val text: String,
     val color: String = HighlightColor.GREEN.name,
+    val startOffset: Int = -1,   // character offset in the full question text; -1 = legacy
     val createdAt: Long = System.currentTimeMillis()
 )

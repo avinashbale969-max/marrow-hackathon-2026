@@ -19,6 +19,7 @@ import com.marrow.companion.ui.screens.flashcard.FlashcardScreen
 import com.marrow.companion.ui.screens.profile.ProfileScreen
 import com.marrow.companion.ui.screens.quiz.QuizScreen
 import com.marrow.companion.ui.screens.bookmarks.SubjectBookmarksScreen
+import com.marrow.companion.ui.screens.splash.SplashScreen
 import com.marrow.companion.ui.screens.subjects.AllNotesScreen
 import com.marrow.companion.ui.screens.subjects.SubjectNotesScreen
 import com.marrow.companion.ui.screens.subjects.SubjectsScreen
@@ -64,9 +65,19 @@ fun AppNavGraph() {
     ) { padding ->
         NavHost(
             navController = navController,
-            startDestination = NavRoutes.Login.route,
+            startDestination = NavRoutes.Splash.route,
             modifier = Modifier.padding(padding)
         ) {
+            composable(NavRoutes.Splash.route) {
+                SplashScreen(
+                    onNavigate = {
+                        navController.navigate(NavRoutes.Dashboard.route) {
+                            popUpTo(NavRoutes.Splash.route) { inclusive = true }
+                        }
+                    }
+                )
+            }
+
             composable(NavRoutes.Login.route) {
                 LoginScreen(
                     onLoginSuccess = {
