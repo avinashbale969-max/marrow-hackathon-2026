@@ -68,11 +68,24 @@ fun HighlightableText(
     scrollOffsetPx: (() -> Int)? = null,   // current vertical scroll offset in px
     modifier: Modifier = Modifier
 ) {
-    val clipboardManager = LocalClipboardManager.current
     val coroutineScope   = rememberCoroutineScope()
     val density          = LocalDensity.current
     val view             = LocalView.current
     val focusManager     = androidx.compose.ui.platform.LocalFocusManager.current
+
+    // Intercept clipboard so selected text is captured locally — never touches the
+    // system clipboard, which means Android 13+ never shows the "Copied" toast.
+    val capturedText = remember { mutableStateOf<String?>(null) }
+    val interceptClipboard = remember {
+        object : androidx.compose.ui.platform.ClipboardManager {
+            override fun setText(annotatedString: androidx.compose.ui.text.AnnotatedString) {
+                capturedText.value = annotatedString.text   // store locally only
+            }
+            override fun getText(): androidx.compose.ui.text.AnnotatedString? =
+                capturedText.value?.let { androidx.compose.ui.text.AnnotatedString(it) }
+            override fun hasText(): Boolean = capturedText.value?.isNotEmpty() == true
+        }
+    }
 
     var showPicker            by remember { mutableStateOf(false) }
     var userDismissed         by remember { mutableStateOf(false) }
@@ -215,7 +228,10 @@ fun HighlightableText(
             }
     ) {
         // ── Explanation text — pushed right when stickies exist ───────────
-        CompositionLocalProvider(LocalTextToolbar provides toolbar) {
+        CompositionLocalProvider(
+            LocalTextToolbar      provides toolbar,
+            LocalClipboardManager provides interceptClipboard
+        ) {
             SelectionContainer {
                 Text(
                     text       = annotated,
@@ -378,13 +394,13 @@ fun HighlightableText(
                                 horizontalArrangement = Arrangement.spacedBy(10.dp)
                             ) {
                                 ColorSwatch(GreenHL) {
-                                    doHighlight(HighlightColor.GREEN, pendingCopy, clipboardManager, coroutineScope, text, pendingSelectionOffset) { t, offset ->
+                                    doHighlight(HighlightColor.GREEN, pendingCopy, capturedText, coroutineScope, text, pendingSelectionOffset) { t, offset ->
                                         onHighlight(t, HighlightColor.GREEN, offset); lastHighlightText = t; showPicker = false
                                         coroutineScope.launch { flashAlpha.snapTo(1f); flashAlpha.animateTo(0f, tween(700)) }
                                     }
                                 }
                                 ColorSwatch(OrangeHL) {
-                                    doHighlight(HighlightColor.ORANGE, pendingCopy, clipboardManager, coroutineScope, text, pendingSelectionOffset) { t, offset ->
+                                    doHighlight(HighlightColor.ORANGE, pendingCopy, capturedText, coroutineScope, text, pendingSelectionOffset) { t, offset ->
                                         onHighlight(t, HighlightColor.ORANGE, offset); lastHighlightText = t; showPicker = false
                                         coroutineScope.launch { flashAlpha.snapTo(1f); flashAlpha.animateTo(0f, tween(700)) }
                                     }
@@ -399,7 +415,7 @@ fun HighlightableText(
                                                 coroutineScope.launch {
                                                     pendingCopy?.invoke()
                                                     delay(80)
-                                                    val selected = clipboardManager.getText()?.text?.trim() ?: ""
+                                                    val selected = capturedText.value?.trim() ?: ""
                                                     val hlStart = if (selectionHit.startOffset >= 0 &&
                                                                       selectionHit.startOffset + selectionHit.text.length <= text.length &&
                                                                       text.substring(selectionHit.startOffset, selectionHit.startOffset + selectionHit.text.length) == selectionHit.text)
@@ -456,7 +472,7 @@ fun HighlightableText(
                                 horizontalArrangement = Arrangement.spacedBy(14.dp)
                             ) {
                                 ActionText("✎ Highlight") {
-                                    doHighlight(HighlightColor.GREEN, pendingCopy, clipboardManager, coroutineScope, text, pendingSelectionOffset) { t, offset ->
+                                    doHighlight(HighlightColor.GREEN, pendingCopy, capturedText, coroutineScope, text, pendingSelectionOffset) { t, offset ->
                                         onHighlight(t, HighlightColor.GREEN, offset); lastHighlightText = t; showPicker = false
                                         coroutineScope.launch { flashAlpha.snapTo(1f); flashAlpha.animateTo(0f, tween(700)) }
                                     }
@@ -465,7 +481,7 @@ fun HighlightableText(
                                     coroutineScope.launch {
                                         pendingCopy?.invoke()
                                         delay(80)
-                                        val selected = clipboardManager.getText()?.text?.trim() ?: ""
+                                        val selected = capturedText.value?.trim() ?: ""
                                         if (selected.isNotBlank()) onTagSelected?.invoke(selected)
                                         showPicker = false
                                     }
@@ -601,16 +617,16 @@ fun StickyEditDialog(
 private fun doHighlight(
     color: HighlightColor,
     pendingCopy: (() -> Unit)?,
-    clipboardManager: androidx.compose.ui.platform.ClipboardManager,
+    capturedText: androidx.compose.runtime.MutableState<String?>,
     scope: kotlinx.coroutines.CoroutineScope,
     fullText: String,
     selectionOffset: Int,
     onDone: (String, Int) -> Unit
 ) {
     scope.launch {
-        pendingCopy?.invoke()
+        pendingCopy?.invoke()   // writes to interceptClipboard only — no system clipboard touch
         delay(80)
-        val selected = clipboardManager.getText()?.text?.trim() ?: ""
+        val selected = capturedText.value?.trim() ?: ""
         if (selected.isNotBlank()) {
             val startOffset = findOccurrenceStart(fullText, selected, selectionOffset)
             onDone(selected, startOffset)
