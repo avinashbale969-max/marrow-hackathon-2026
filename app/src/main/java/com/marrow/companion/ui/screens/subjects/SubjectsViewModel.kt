@@ -88,6 +88,7 @@ class SubjectsViewModel @Inject constructor(
 
     fun getNotesCountBySubject()      = noteDao.getCountBySubject()
     fun getHighlightsCountBySubject() = highlightDao.getCountBySubject()
+    fun getHighlightsCountByTopic()   = highlightDao.getCountByTopic()
 
     fun deleteHighlight(id: Long) {
         viewModelScope.launch { highlightDao.deleteById(id) }

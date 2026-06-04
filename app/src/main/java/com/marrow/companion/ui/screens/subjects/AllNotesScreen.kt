@@ -1,5 +1,10 @@
 package com.marrow.companion.ui.screens.subjects
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -12,22 +17,21 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
-import androidx.compose.ui.draw.shadow
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.animation.core.tween
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontStyle
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.marrow.companion.data.database.dao.HighlightWithSubject
 import com.marrow.companion.data.database.dao.NoteWithSubject
+import com.marrow.companion.data.database.dao.TopicHighlightCount
 import com.marrow.companion.data.database.entities.HighlightColor
 import com.marrow.companion.data.database.entities.NoteTag
 
@@ -42,31 +46,30 @@ private val OrangeHL = Color(0xFFFFA726)
 fun AllNotesScreen(
     onBack: () -> Unit,
     onSubjectClick: (Long) -> Unit = {},
+    onTopicClick: (subjectId: Long, topicId: Long) -> Unit = { _, _ -> },
     onNotesClick: () -> Unit = {},
     onGreenClick: () -> Unit = {},
     onOrangeClick: () -> Unit = {},
     viewModel: SubjectsViewModel = hiltViewModel()
 ) {
-    val allNotes       by viewModel.getAllNotesWithSubject().collectAsState(initial = emptyList())
     val allHighlights  by viewModel.getAllHighlightsWithSubject().collectAsState(initial = emptyList())
-    val notesBySubject by viewModel.getNotesCountBySubject().collectAsState(initial = emptyList())
     val hlBySubject    by viewModel.getHighlightsCountBySubject().collectAsState(initial = emptyList())
+    val hlByTopic      by viewModel.getHighlightsCountByTopic().collectAsState(initial = emptyList())
     val subjects       by viewModel.subjects.collectAsState()
-
-    val notesMap    = notesBySubject.associate { it.subjectId to it.count }
-    val hlMap       = hlBySubject.associate { it.subjectId to it.count }
-    val allIds      = (notesMap.keys + hlMap.keys).toSet()
+    val hlMap        = hlBySubject.associate { it.subjectId to it.count }
+    val topicHlMap   = hlByTopic.groupBy { it.subjectId }  // subjectId -> List<TopicHighlightCount>
     val subjectsWithData = subjects
-        .filter { it.id in allIds }
-        .map { s -> Triple(s.id, s.name, (notesMap[s.id] ?: 0) + (hlMap[s.id] ?: 0)) }
-        .sortedByDescending { it.third }
+        .filter { it.id in hlMap.keys }
+        .map { s -> Pair(s.id, s.name) }
+        .sortedByDescending { hlMap[it.first] ?: 0 }
 
-    val total = allNotes.size + allHighlights.size
+    val totalHighlights = allHighlights.size
+    val expandedSubjects = remember { mutableStateMapOf<Long, Boolean>() }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("My Notes", fontWeight = FontWeight.Bold) },
+                title = { Text("My Highlights", fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, null)
@@ -93,7 +96,7 @@ fun AllNotesScreen(
                         .padding(horizontal = 20.dp, vertical = 18.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text("All Subjects ($total)", fontSize = 16.sp,
+                    Text("All Subjects ($totalHighlights)", fontSize = 16.sp,
                         color = Color(0xFF333333), modifier = Modifier.weight(1f))
                     Icon(Icons.AutoMirrored.Filled.ArrowForwardIos, null,
                         tint = Color(0xFFBBBBBB), modifier = Modifier.size(14.dp))
@@ -120,42 +123,131 @@ fun AllNotesScreen(
                 HorizontalDivider(color = Color(0xFFEEEEEE))
             }
 
-            // ── Per-subject rows ──────────────────────────────────────────
+            // ── Per-subject expandable rows ───────────────────────────────
             if (subjectsWithData.isEmpty()) {
                 item {
                     Box(Modifier.fillMaxWidth().padding(48.dp), Alignment.Center) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally,
                             verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                            Icon(Icons.Filled.Edit, null,
+                            Icon(Icons.Filled.Highlight, null,
                                 tint = Color(0xFFCCCCCC), modifier = Modifier.size(52.dp))
-                            Text("No notes or highlights yet",
+                            Text("No highlights yet",
                                 color = Color.Gray, fontWeight = FontWeight.Medium)
                         }
                     }
                 }
             } else {
-                items(subjectsWithData) { (subjectId, subjectName, count) ->
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .background(Color.White)
-                            .clickable { onSubjectClick(subjectId) }
-                            .padding(horizontal = 20.dp, vertical = 18.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text("$subjectName ($count)", fontSize = 15.sp,
-                            color = Color(0xFF333333), modifier = Modifier.weight(1f))
-                        Icon(Icons.AutoMirrored.Filled.ArrowForwardIos, null,
-                            tint = Color(0xFFBBBBBB), modifier = Modifier.size(14.dp))
+                subjectsWithData.forEach { (subjectId, subjectName) ->
+                    val count     = hlMap[subjectId] ?: 0
+                    val expanded  = expandedSubjects[subjectId] ?: false
+                    val topicRows = topicHlMap[subjectId]?.sortedByDescending { it.count } ?: emptyList()
+
+                    // Subject header + animated lesson rows — single item for smooth animation
+                    item(key = "subj_$subjectId") {
+                        Column {
+                            // Header row
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .background(Color.White)
+                                    .clickable { expandedSubjects[subjectId] = !expanded }
+                                    .padding(horizontal = 20.dp, vertical = 16.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(subjectName, fontSize = 15.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = Color(0xFF222222), modifier = Modifier.weight(1f))
+                                Box(
+                                    Modifier.clip(RoundedCornerShape(20.dp))
+                                        .background(Teal.copy(alpha = 0.12f))
+                                        .padding(horizontal = 8.dp, vertical = 3.dp)
+                                ) {
+                                    Text("$count", fontSize = 11.sp,
+                                        fontWeight = FontWeight.Bold, color = Teal)
+                                }
+                                Spacer(Modifier.width(10.dp))
+                                Icon(
+                                    if (expanded) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,
+                                    null, tint = Color(0xFFAAAAAA), modifier = Modifier.size(20.dp)
+                                )
+                            }
+
+                            // Animated lesson rows
+                            AnimatedVisibility(
+                                visible = expanded,
+                                enter = expandVertically(tween(160)) + fadeIn(tween(120)),
+                                exit  = shrinkVertically(tween(140)) + fadeOut(tween(100))
+                            ) {
+                                Column {
+                                    if (topicRows.isEmpty()) {
+                                        Row(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .background(Color(0xFFFAFAFA))
+                                                .padding(start = 40.dp, end = 20.dp,
+                                                    top = 12.dp, bottom = 12.dp)
+                                        ) {
+                                            Text("No lessons with highlights",
+                                                fontSize = 13.sp, color = Color.Gray)
+                                        }
+                                    } else {
+                                        topicRows.forEach { topicCount ->
+                                            LessonRow(
+                                                topicId   = topicCount.topicId,
+                                                subjectId = subjectId,
+                                                count     = topicCount.count,
+                                                viewModel = viewModel,
+                                                onClick   = { onTopicClick(subjectId, topicCount.topicId) }
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+
+                            HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp),
+                                color = Color(0xFFEEEEEE))
+                        }
                     }
-                    HorizontalDivider(
-                        modifier = Modifier.padding(horizontal = 16.dp),
-                        color    = Color(0xFFEEEEEE)
-                    )
                 }
             }
         }
     }
+}
+
+@Composable
+private fun LessonRow(
+    topicId: Long,
+    subjectId: Long,
+    count: Int,
+    viewModel: SubjectsViewModel,
+    onClick: () -> Unit
+) {
+    val topics by viewModel.getTopicsForSubject(subjectId).collectAsState(initial = emptyList())
+    val topicName = topics.find { it.id == topicId }?.name ?: "Lesson $topicId"
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(Color(0xFFFAFAFA))
+            .clickable(onClick = onClick)
+            .padding(start = 40.dp, end = 20.dp, top = 13.dp, bottom = 13.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        // lesson dot
+        Box(
+            Modifier.size(6.dp).clip(RoundedCornerShape(3.dp)).background(Teal)
+                .align(Alignment.CenterVertically)
+        )
+        Spacer(Modifier.width(10.dp))
+        Text(topicName, fontSize = 13.sp, color = Color(0xFF444444),
+            modifier = Modifier.weight(1f))
+        Text("$count", fontSize = 12.sp, fontWeight = FontWeight.Medium, color = Teal)
+        Spacer(Modifier.width(6.dp))
+        Icon(Icons.AutoMirrored.Filled.ArrowForwardIos, null,
+            tint = Color(0xFFCCCCCC), modifier = Modifier.size(11.dp))
+    }
+    HorizontalDivider(modifier = Modifier.padding(start = 40.dp, end = 16.dp),
+        color = Color(0xFFF0F0F0))
 }
 
 @Composable

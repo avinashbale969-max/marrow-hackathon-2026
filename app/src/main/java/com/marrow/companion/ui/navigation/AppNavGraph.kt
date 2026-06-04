@@ -180,9 +180,12 @@ fun AppNavGraph() {
                             navController.navigate(NavRoutes.SubjectNotes.create(subjectId))
                         }
                     },
-                    onNotesClick  = { navController.navigate(NavRoutes.SubjectNotes.create(0L, tab = 0)) },
-                    onGreenClick  = { navController.navigate(NavRoutes.SubjectNotes.create(0L, tab = 1, color = "GREEN")) },
-                    onOrangeClick = { navController.navigate(NavRoutes.SubjectNotes.create(0L, tab = 1, color = "ORANGE")) }
+                    onTopicClick  = { subjectId, topicId ->
+                        navController.navigate(NavRoutes.TopicNotes.create(subjectId, topicId))
+                    },
+                    onNotesClick  = { navController.navigate(NavRoutes.SubjectNotes.create(0L)) },
+                    onGreenClick  = { navController.navigate(NavRoutes.SubjectNotes.create(0L)) },
+                    onOrangeClick = { navController.navigate(NavRoutes.SubjectNotes.create(0L)) }
                 )
             }
 

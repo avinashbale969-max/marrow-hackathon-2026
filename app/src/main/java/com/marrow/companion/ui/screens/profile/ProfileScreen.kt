@@ -41,25 +41,34 @@ fun ProfileScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = {
-                    Text("Video Edition", fontWeight = FontWeight.Bold, fontSize = 20.sp)
-                },
-                navigationIcon = {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Teal)
+                    .statusBarsPadding()
+                    .height(48.dp)
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxSize().padding(horizontal = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
                     IconButton(onClick = {}) {
                         Icon(Icons.Filled.Menu, null, tint = Color.White)
                     }
-                },
-                actions = {
+                    Box(modifier = Modifier.weight(1f)) {
+                        Text(
+                            "Video Edition",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 18.sp,
+                            color = Color.White,
+                            modifier = Modifier.align(Alignment.Center)
+                        )
+                    }
                     IconButton(onClick = {}) {
                         Icon(Icons.Filled.Search, null, tint = Color.White)
                     }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor    = Teal,
-                    titleContentColor = Color.White
-                )
-            )
+                }
+            }
         },
         containerColor = Color(0xFFF2F2F2)
     ) { padding ->

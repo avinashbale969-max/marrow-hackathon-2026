@@ -77,53 +77,58 @@ fun SubjectsScreen(
 
     Scaffold(
         topBar = {
-            CenterAlignedTopAppBar(
-                title = {
-                    if (showSearch) {
-                        // Search field replaces title
-                        BasicTextField(
-                            value         = searchQuery,
-                            onValueChange = { searchQuery = it },
-                            singleLine    = true,
-                            textStyle     = androidx.compose.ui.text.TextStyle(
-                                color    = Color.White,
-                                fontSize = 16.sp
-                            ),
-                            cursorBrush   = androidx.compose.ui.graphics.SolidColor(Color.White),
-                            modifier      = Modifier.fillMaxWidth().padding(horizontal = 4.dp),
-                            decorationBox = { inner ->
-                                if (searchQuery.isEmpty()) {
-                                    Text("Search subjects…", color = Color.White.copy(alpha = 0.6f),
-                                        fontSize = 16.sp)
-                                }
-                                inner()
-                            }
-                        )
-                    } else {
-                        Text("QBank Edition", fontWeight = FontWeight.Bold, fontSize = 20.sp)
-                    }
-                },
-                navigationIcon = {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(TealHeader)
+                    .statusBarsPadding()
+                    .height(48.dp)
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxSize().padding(horizontal = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
                     IconButton(onClick = {
                         if (showSearch) { showSearch = false; searchQuery = "" }
                     }) {
                         if (showSearch) Icon(Icons.Filled.Close, null, tint = Color.White)
                         else Icon(Icons.Filled.Menu, null, tint = Color.White)
                     }
-                },
-                actions = {
-                    IconButton(onClick = { showSearch = true }) {
-                        Icon(Icons.Filled.Search, contentDescription = "Search",
-                            tint = Color.White)
+                    Box(modifier = Modifier.weight(1f)) {
+                        if (showSearch) {
+                            BasicTextField(
+                                value         = searchQuery,
+                                onValueChange = { searchQuery = it },
+                                singleLine    = true,
+                                textStyle     = androidx.compose.ui.text.TextStyle(
+                                    color    = Color.White,
+                                    fontSize = 16.sp
+                                ),
+                                cursorBrush   = androidx.compose.ui.graphics.SolidColor(Color.White),
+                                modifier      = Modifier.fillMaxWidth().padding(horizontal = 4.dp),
+                                decorationBox = { inner ->
+                                    if (searchQuery.isEmpty()) {
+                                        Text("Search subjects…", color = Color.White.copy(alpha = 0.6f),
+                                            fontSize = 16.sp)
+                                    }
+                                    inner()
+                                }
+                            )
+                        } else {
+                            Text(
+                                "QBank Edition",
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 18.sp,
+                                color = Color.White,
+                                modifier = Modifier.align(Alignment.Center)
+                            )
+                        }
                     }
-                },
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = TealHeader,
-                    titleContentColor = Color.White,
-                    actionIconContentColor = Color.White,
-                    navigationIconContentColor = Color.White
-                )
-            )
+                    IconButton(onClick = { showSearch = true }) {
+                        Icon(Icons.Filled.Search, contentDescription = "Search", tint = Color.White)
+                    }
+                }
+            }
         },
         containerColor = Color(0xFFF2F2F2)
     ) { padding ->
