@@ -17,3 +17,6 @@ local.propertiesapp/build/outputs/apk/
 =======
 local.properties
 >>>>>>> origin/Sri_hackthon
+app/build/
+build/
+.gradle/
