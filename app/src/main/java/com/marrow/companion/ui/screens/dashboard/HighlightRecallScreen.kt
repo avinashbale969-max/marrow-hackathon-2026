@@ -1,6 +1,7 @@
 package com.marrow.companion.ui.screens.dashboard
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -97,57 +98,61 @@ fun HighlightRecallScreen(
         }
 
         val hl       = highlight!!
-        val hlColor  = if (hl.color == "ORANGE") Orange else Green
-        val hlBg     = if (hl.color == "ORANGE") OrangeBg else GreenBg
+        val isOrange = hl.color == "ORANGE"
+        val hlColor  = if (isOrange) Orange else Green
+        val hlBg     = if (isOrange) Color(0xFFFFFBF0) else Color(0xFFF0FBF1)
+        val hlBorder = if (isOrange) Color(0xFFFFCC80) else Color(0xFFA5D6A7)
         val qIdLabel = "MRW-${hl.questionId.toString().padStart(5, '0')}"
 
         Column(
             modifier = Modifier.fillMaxSize().padding(padding).padding(20.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            // ── Highlighted text card (matches Image 23) ──────────────────────
+            // ── Card: text + subject + MRW badge all inside border ───────────
             Box(
                 modifier = Modifier.fillMaxWidth()
+                    .border(1.dp, hlBorder, RoundedCornerShape(12.dp))
                     .clip(RoundedCornerShape(12.dp))
                     .background(hlBg)
                     .padding(16.dp)
             ) {
-                Row(horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    verticalAlignment = Alignment.Top) {
-                    Box(Modifier.width(4.dp).height(IntrinsicSize.Max).heightIn(min = 20.dp)
-                        .fillMaxHeight().background(hlColor).clip(RoundedCornerShape(2.dp)))
-                    Text(
-                        "\"${hl.text}\"",
-                        fontSize   = 16.sp,
-                        lineHeight = 25.sp,
-                        fontWeight = FontWeight.Medium,
-                        color      = Color(0xFF1A1A1A),
-                        modifier   = Modifier.weight(1f)
-                    )
-                }
-            }
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        verticalAlignment = Alignment.Top) {
+                        Box(Modifier.width(4.dp).height(IntrinsicSize.Max).heightIn(min = 20.dp)
+                            .fillMaxHeight().clip(RoundedCornerShape(2.dp)).background(hlColor))
+                        Text(
+                            "\"${hl.text}\"",
+                            fontSize   = 16.sp,
+                            lineHeight = 25.sp,
+                            fontWeight = FontWeight.Medium,
+                            color      = Color(0xFF1A1A1A),
+                            modifier   = Modifier.weight(1f)
+                        )
+                    }
 
-            // ── Subject · Topic ────────────────────────────────────────────────
-            Row(verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
-                modifier = Modifier.padding(horizontal = 4.dp)) {
-                Text(hl.subjectName, fontSize = 13.sp, color = Color(0xFF888888))
-                Box(Modifier.size(6.dp).clip(CircleShape).background(hlColor))
-                Text(hl.topicName ?: "", fontSize = 13.sp, color = Color(0xFF888888))
-            }
+                    // Subject · Topic
+                    Row(verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        Text(hl.subjectName, fontSize = 12.sp, color = Color(0xFF888888))
+                        Box(Modifier.size(5.dp).clip(CircleShape).background(hlColor))
+                        Text(hl.topicName ?: "", fontSize = 12.sp, color = Color(0xFF888888))
+                    }
 
-            // ── MRW badge — tappable → opens question ─────────────────────────
-            Row(modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.End) {
-                Box(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(20.dp))
-                        .background(hlColor)
-                        .clickable { if (hl.questionId > 0) onOpenQuestion(hl.questionId) }
-                        .padding(horizontal = 16.dp, vertical = 8.dp)
-                ) {
-                    Text(qIdLabel, fontSize = 13.sp, color = Color.White,
-                        fontWeight = FontWeight.Bold)
+                    // MRW badge
+                    Row(modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.End) {
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(20.dp))
+                                .background(hlColor)
+                                .clickable { if (hl.questionId > 0) onOpenQuestion(hl.questionId) }
+                                .padding(horizontal = 16.dp, vertical = 8.dp)
+                        ) {
+                            Text(qIdLabel, fontSize = 13.sp, color = Color.White,
+                                fontWeight = FontWeight.Bold)
+                        }
+                    }
                 }
             }
         }
