@@ -78,9 +78,6 @@ dependencies {
     // Edge-to-edge window insets (API 30+)
     implementation("androidx.core:core-ktx:1.13.1")
 
-    // ML Kit on-device translation — free, no API key, works offline
-    implementation("com.google.mlkit:translate:17.0.2")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.3")
 
     implementation(libs.vico.compose)
     implementation(libs.vico.compose.m3)

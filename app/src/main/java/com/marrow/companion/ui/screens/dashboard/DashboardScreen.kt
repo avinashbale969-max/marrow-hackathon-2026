@@ -109,10 +109,29 @@ fun DashboardScreen(
 
                     Spacer(Modifier.height(16.dp))
 
-                    // Circular progress ring
+                    // Circular progress ring with animated counter
                     val attempted = state.user?.totalAttempts ?: 0
                     val total     = state.totalQuestionsInDb.coerceAtLeast(1)
-                    val fraction  = (attempted.toFloat() / total).coerceIn(0f, 1f)
+
+                    // Single animation drives both counter AND ring — always in sync
+                    val animatedCount = remember { androidx.compose.animation.core.Animatable(0f) }
+                    val animatedFraction = if (total > 0) animatedCount.value / total else 0f
+
+                    LaunchedEffect(attempted) {
+                        animatedCount.snapTo(0f)
+                        if (attempted > 0) {
+                            kotlinx.coroutines.delay(300) // wait for screen to settle
+                            animatedCount.animateTo(
+                                targetValue = attempted.toFloat(),
+                                animationSpec = androidx.compose.animation.core.tween(
+                                    durationMillis = 1800,
+                                    easing = androidx.compose.animation.core.CubicBezierEasing(
+                                        0.16f, 1f, 0.3f, 1f  // EaseOutExpo — fast burst, ultra-smooth stop
+                                    )
+                                )
+                            )
+                        }
+                    }
 
                     Box(
                         modifier = Modifier.size(130.dp),
@@ -126,16 +145,17 @@ fun DashboardScreen(
                             color = Color.White.copy(alpha = 0.25f),
                             strokeCap = StrokeCap.Round
                         )
-                        // Progress ring
+                        // Progress ring — derived from same animatedCount, always in sync
                         CircularProgressIndicator(
-                            progress = { fraction },
+                            progress = { animatedFraction },
                             modifier = Modifier.fillMaxSize(),
                             strokeWidth = 7.dp,
                             color = RingGreen,
                             strokeCap = StrokeCap.Round
                         )
+                        // Animated count number
                         Text(
-                            "$attempted",
+                            "${animatedCount.value.toInt()}",
                             fontSize = 38.sp,
                             fontWeight = FontWeight.Bold,
                             color = Color.White

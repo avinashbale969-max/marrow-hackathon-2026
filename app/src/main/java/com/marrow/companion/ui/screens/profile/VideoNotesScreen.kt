@@ -20,7 +20,6 @@ import com.marrow.companion.data.database.entities.HighlightEntity
 import com.marrow.companion.data.database.entities.NoteTag
 import com.marrow.companion.ui.screens.quiz.HighlightableText
 import com.marrow.companion.ui.screens.quiz.MyNotesSheet
-import com.marrow.companion.ui.screens.quiz.SelectionTranslateSheet
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.marrow.companion.data.database.dao.HighlightDao
@@ -94,8 +93,6 @@ fun VideoNotesScreen(
     val scrollState  = rememberScrollState()
     var selectionActive by remember { mutableStateOf(false) }
     var showNotesSheet  by remember { mutableStateOf(false) }
-    var showTranslate   by remember { mutableStateOf(false) }
-    var translateText   by remember { mutableStateOf("") }
     var pendingTagQuote by remember { mutableStateOf<String?>(null) }
     var showTagDialog   by remember { mutableStateOf(false) }
 
@@ -111,11 +108,6 @@ fun VideoNotesScreen(
             onEditNote        = { note, text, tag -> viewModel.updateNote(note, text, tag) },
             onDismiss         = { showNotesSheet = false }
         )
-    }
-
-    if (showTranslate && translateText.isNotBlank()) {
-        SelectionTranslateSheet(selectedText = translateText,
-            onDismiss = { showTranslate = false; translateText = "" })
     }
 
     if (showTagDialog && pendingTagQuote != null) {
@@ -188,7 +180,6 @@ fun VideoNotesScreen(
                     onEditTag           = { note, txt -> viewModel.updateNote(note, txt, NoteTag.TAG) },
                     onScrollEnabled     = { en -> selectionActive = !en },
                     scrollOffsetPx      = { scrollState.value },
-                    onTranslateSelected = { text -> translateText = text; showTranslate = true }
                 )
             }
         }

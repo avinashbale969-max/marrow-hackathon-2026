@@ -47,7 +47,6 @@ import com.marrow.companion.ui.screens.quiz.BookmarkTypePopup
 import com.marrow.companion.ui.screens.quiz.HighlightableText
 import com.marrow.companion.ui.screens.quiz.MyNotesSheet
 import com.marrow.companion.ui.screens.quiz.NoteInputDialog
-import com.marrow.companion.ui.screens.quiz.SelectionTranslateSheet
 import com.marrow.companion.ui.screens.quiz.StickyEditDialog
 import com.marrow.companion.ui.screens.quiz.bookmarkColor
 import com.marrow.companion.ui.screens.quiz.bookmarkIcon
@@ -191,8 +190,6 @@ fun QuestionExplanationScreen(
     var showBookmarkPopup      by remember { mutableStateOf(false) }
     var screenshotType         by remember { mutableStateOf<String?>(null) }
     var showNotesSheet         by remember { mutableStateOf(false) }
-    var showSelectionTranslate by remember { mutableStateOf(false) }
-    var selectedTranslateText  by remember { mutableStateOf("") }
     var pendingTagQuote        by remember { mutableStateOf<String?>(null) }
     var showTagDialog          by remember { mutableStateOf(false) }
     var selectionActive        by remember { mutableStateOf(false) }
@@ -213,13 +210,6 @@ fun QuestionExplanationScreen(
             onEditNote        = { note, text, tag -> viewModel.updateNote(note, text, tag) },
             onMcqClick        = onMcqClick,
             onDismiss         = { showNotesSheet = false }
-        )
-    }
-
-    if (showSelectionTranslate && selectedTranslateText.isNotBlank()) {
-        SelectionTranslateSheet(
-            selectedText = selectedTranslateText,
-            onDismiss    = { showSelectionTranslate = false; selectedTranslateText = "" }
         )
     }
 
@@ -360,11 +350,7 @@ fun QuestionExplanationScreen(
                                 viewModel.addNote(txt, NoteTag.TAG, note.attachedQuote)
                             },
                             onScrollEnabled     = { en -> selectionActive = !en },
-                            scrollOffsetPx      = { scrollState.value },
-                            onTranslateSelected = { text ->
-                                selectedTranslateText  = text
-                                showSelectionTranslate = true
-                            }
+                            scrollOffsetPx      = { scrollState.value }
                         )
                         Spacer(Modifier.height(16.dp))
                     }

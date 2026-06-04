@@ -20,7 +20,6 @@ import com.marrow.companion.data.database.entities.NoteTag
 import com.marrow.companion.ui.screens.quiz.HighlightableText
 import com.marrow.companion.ui.screens.quiz.MyNotesSheet
 import com.marrow.companion.ui.screens.quiz.NoteInputDialog
-import com.marrow.companion.ui.screens.quiz.SelectionTranslateSheet
 
 private val Teal = Color(0xFF4DC8D4)
 
@@ -41,8 +40,6 @@ fun ImageNotesScreen(
     val tagNotes    = notes.filter { it.tag == NoteTag.TAG.name }
 
     var showNotesSheet   by remember { mutableStateOf(false) }
-    var showTranslate    by remember { mutableStateOf(false) }
-    var translateText    by remember { mutableStateOf("") }
     var pendingTagQuote  by remember { mutableStateOf<String?>(null) }
     var showTagDialog    by remember { mutableStateOf(false) }
     var selectionActive  by remember { mutableStateOf(false) }
@@ -61,10 +58,6 @@ fun ImageNotesScreen(
             onEditNote        = { note, text, tag -> viewModel.updateNote(note, text, tag) },
             onDismiss         = { showNotesSheet = false }
         )
-    }
-    if (showTranslate && translateText.isNotBlank()) {
-        SelectionTranslateSheet(selectedText = translateText,
-            onDismiss = { showTranslate = false; translateText = "" })
     }
     if (showTagDialog && pendingTagQuote != null) {
         NoteInputDialog(
@@ -133,7 +126,6 @@ fun ImageNotesScreen(
                 onEditTag           = { note, txt -> viewModel.updateNote(note, txt, NoteTag.TAG) },
                 onScrollEnabled     = { en -> selectionActive = !en },
                 scrollOffsetPx      = { scrollState.value },
-                onTranslateSelected = { text -> translateText = text; showTranslate = true }
             )
 
             Spacer(Modifier.height(24.dp))

@@ -27,7 +27,6 @@ import com.marrow.companion.data.database.entities.HighlightColor
 import com.marrow.companion.data.database.entities.NoteTag
 import com.marrow.companion.ui.screens.quiz.HighlightableText
 import com.marrow.companion.ui.screens.quiz.MyNotesSheet
-import com.marrow.companion.ui.screens.quiz.SelectionTranslateSheet
 import com.marrow.companion.ui.screens.quiz.NoteInputDialog
 
 private val Teal      = Color(0xFF4DC8D4)
@@ -56,8 +55,6 @@ fun VideoLessonScreen(
     var isCompleted      by remember { mutableStateOf(false) }
     var selectionActive  by remember { mutableStateOf(false) }
     var showNotesSheet   by remember { mutableStateOf(false) }
-    var showTranslate    by remember { mutableStateOf(false) }
-    var translateText    by remember { mutableStateOf("") }
     var pendingTagQuote  by remember { mutableStateOf<String?>(null) }
     var showTagDialog    by remember { mutableStateOf(false) }
     var currentChapter   by remember { mutableIntStateOf(0) }
@@ -76,10 +73,6 @@ fun VideoLessonScreen(
             onEditNote        = { note, text, tag -> viewModel.updateNote(note, text, tag) },
             onDismiss         = { showNotesSheet = false }
         )
-    }
-    if (showTranslate && translateText.isNotBlank()) {
-        SelectionTranslateSheet(selectedText = translateText,
-            onDismiss = { showTranslate = false; translateText = "" })
     }
     if (showTagDialog && pendingTagQuote != null) {
         NoteInputDialog(
