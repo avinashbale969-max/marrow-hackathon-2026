@@ -305,6 +305,15 @@ fun NoteCard(
     onDelete: () -> Unit,
     onEdit: (() -> Unit)? = null
 ) {
+    var showNoteConfirm by remember { mutableStateOf(false) }
+    if (showNoteConfirm) {
+        com.marrow.companion.ui.common.ConfirmDeleteDialog(
+            title   = "Delete Note?",
+            message = "\"${note.text.take(60)}${if (note.text.length > 60) "…" else ""}\" will be permanently removed.",
+            onConfirm = onDelete,
+            onDismiss = { showNoteConfirm = false }
+        )
+    }
     val tagColor = when (note.tag) {
         NoteTag.IMP.name   -> Color(0xFFFFC107)
         NoteTag.DOUBT.name -> Color(0xFF2196F3)
@@ -369,7 +378,7 @@ fun NoteCard(
                             modifier = Modifier.size(16.dp).clickable(onClick = onEdit))
                     }
                     Icon(Icons.Filled.Delete, null, tint = Color(0xFFCCCCCC),
-                        modifier = Modifier.size(16.dp).clickable(onClick = onDelete))
+                        modifier = Modifier.size(16.dp).clickable { showNoteConfirm = true })
                 }
             }
         }
@@ -382,6 +391,15 @@ fun HighlightCard(
     onDelete: () -> Unit,
     onAddNote: (() -> Unit)? = null
 ) {
+    var showConfirm by remember { mutableStateOf(false) }
+    if (showConfirm) {
+        com.marrow.companion.ui.common.ConfirmDeleteDialog(
+            title   = "Delete Highlight?",
+            message = "\"${highlight.text.take(60)}${if (highlight.text.length > 60) "…" else ""}\" will be permanently removed.",
+            onConfirm = onDelete,
+            onDismiss = { showConfirm = false }
+        )
+    }
     val bgColor     = if (highlight.color == HighlightColor.ORANGE.name) Color(0xFFFFF3E0) else Color(0xFFE8F5E9)
     val accentColor = if (highlight.color == HighlightColor.ORANGE.name) OrangeHL else GreenHL
     val timeStr     = SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(highlight.createdAt))
@@ -409,7 +427,7 @@ fun HighlightCard(
                     horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(timeStr, fontSize = 11.sp, color = Color.LightGray)
                     Icon(Icons.Filled.Delete, null, tint = Color(0xFFCCCCCC),
-                        modifier = Modifier.size(16.dp).clickable(onClick = onDelete))
+                        modifier = Modifier.size(16.dp).clickable { showConfirm = true })
                 }
             }
         }

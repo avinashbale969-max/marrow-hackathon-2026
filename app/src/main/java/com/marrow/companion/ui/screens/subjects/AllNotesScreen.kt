@@ -320,7 +320,8 @@ fun SubjectNotesScreen(
                         if (filteredHighlights.isNotEmpty()) {
                             item { SearchSectionHeader("Highlights (${filteredHighlights.size})") }
                             items(filteredHighlights, key = { "h${it.id}" }) { hl ->
-                                HighlightCard(hl, showSubject = isAll)
+                                HighlightCard(hl, showSubject = isAll,
+                                    onDelete = { viewModel.deleteHighlight(hl.id) })
                             }
                         }
                     }
@@ -349,7 +350,10 @@ fun SubjectNotesScreen(
                     if (selectedTab == 0) {
                         items(notes, key = { it.id }) { NoteCard(it, showSubject = isAll) }
                     } else {
-                        items(highlights, key = { it.id }) { HighlightCard(it, showSubject = isAll) }
+                        items(highlights, key = { it.id }) {
+                            HighlightCard(it, showSubject = isAll,
+                                onDelete = { viewModel.deleteHighlight(it.id) })
+                        }
                     }
                 }
             }
@@ -508,7 +512,21 @@ private fun SubjectTopicLabel(subjectName: String, topicName: String?, color: Co
 }
 
 @Composable
-private fun HighlightCard(hl: HighlightWithSubject, showSubject: Boolean) {
+private fun HighlightCard(
+    hl: HighlightWithSubject,
+    showSubject: Boolean,
+    onDelete: (() -> Unit)? = null
+) {
+    var showConfirm by remember { mutableStateOf(false) }
+    if (showConfirm) {
+        com.marrow.companion.ui.common.ConfirmDeleteDialog(
+            title   = "Delete Highlight?",
+            message = "\"${hl.text.take(60)}${if (hl.text.length > 60) "…" else ""}\" will be permanently removed.",
+            onConfirm = { onDelete?.invoke() },
+            onDismiss = { showConfirm = false }
+        )
+    }
+
     val isOrange = hl.color == HighlightColor.ORANGE.name
     val accent   = if (isOrange) OrangeHL else GreenHL
     val bg       = if (isOrange) Color(0xFFFFF8E1) else Color(0xFFE8F5E9)
@@ -519,19 +537,21 @@ private fun HighlightCard(hl: HighlightWithSubject, showSubject: Boolean) {
         Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)) {
 
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalAlignment = Alignment.Top) {
                 Box(Modifier.width(4.dp).heightIn(min = 16.dp)
                     .background(accent).clip(RoundedCornerShape(2.dp)))
                 Text("\"${hl.text}\"", fontSize = 14.sp, lineHeight = 21.sp,
                     color = Color(0xFF333333), modifier = Modifier.weight(1f))
+                if (onDelete != null) {
+                    Icon(Icons.Filled.Delete, null, tint = accent.copy(alpha = 0.5f),
+                        modifier = Modifier.size(16.dp).padding(top = 2.dp)
+                            .clickable { showConfirm = true })
+                }
             }
 
-            // Subject • Topic (always show)
-            SubjectTopicLabel(
-                subjectName = hl.subjectName,
-                topicName   = hl.topicName,
-                color       = Color(0xFF888888)
-            )
+            SubjectTopicLabel(subjectName = hl.subjectName, topicName = hl.topicName,
+                color = Color(0xFF888888))
         }
     }
 }

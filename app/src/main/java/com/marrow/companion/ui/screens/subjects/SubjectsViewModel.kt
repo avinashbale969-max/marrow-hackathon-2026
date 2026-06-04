@@ -15,6 +15,7 @@ import com.marrow.companion.data.database.entities.TopicEntity
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 data class SubjectWithProgress(
@@ -87,6 +88,13 @@ class SubjectsViewModel @Inject constructor(
 
     fun getNotesCountBySubject()      = noteDao.getCountBySubject()
     fun getHighlightsCountBySubject() = highlightDao.getCountBySubject()
+
+    fun deleteHighlight(id: Long) {
+        viewModelScope.launch { highlightDao.deleteById(id) }
+    }
+    fun deleteNoteById(id: Long) {
+        viewModelScope.launch { noteDao.deleteById(id) }
+    }
 
     fun getNotesForSubject(subjectId: Long)       = noteDao.getForSubject(subjectId)
     fun getHighlightsForSubject(subjectId: Long)  = highlightDao.getForSubject(subjectId)
