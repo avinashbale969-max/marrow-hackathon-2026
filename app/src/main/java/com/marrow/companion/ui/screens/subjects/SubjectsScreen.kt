@@ -223,37 +223,22 @@ private fun NotesWidget(
                     .background(Color(0xFFE8F5E9)),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(Icons.Filled.Edit, null,
+                Icon(Icons.Filled.Highlight, null,
                     tint = Color(0xFF43A047), modifier = Modifier.size(20.dp))
             }
 
             Column(modifier = Modifier.weight(1f)) {
-                Text("My Notes",
+                Text("My Highlights",
                     fontWeight = FontWeight.SemiBold,
                     fontSize   = 14.sp,
                     color      = Color(0xFF1A1A1A))
                 Spacer(Modifier.height(2.dp))
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    // Notes count chip
-                    Row(verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                        Icon(Icons.Filled.Edit, null,
-                            tint = TealHeader, modifier = Modifier.size(12.dp))
-                        Text("$notesCount Notes",
-                            fontSize = 12.sp, color = Color(0xFF666666))
-                    }
-                    Text("·", color = Color(0xFFCCCCCC), fontSize = 12.sp)
-                    // Highlights count chip
-                    Row(verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                        Icon(Icons.Filled.Highlight, null,
-                            tint = Color(0xFFFFA726), modifier = Modifier.size(12.dp))
-                        Text("$highlightsCount Highlights",
-                            fontSize = 12.sp, color = Color(0xFF666666))
-                    }
+                Row(verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Icon(Icons.Filled.Highlight, null,
+                        tint = TealHeader, modifier = Modifier.size(12.dp))
+                    Text("$highlightsCount Highlights",
+                        fontSize = 12.sp, color = Color(0xFF666666))
                 }
             }
 
