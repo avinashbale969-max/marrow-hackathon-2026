@@ -210,8 +210,30 @@ class QuizViewModel @Inject constructor(
     fun addHighlight(text: String, color: HighlightColor) {
         val q = _state.value.currentQuestion ?: return
         viewModelScope.launch {
-            // Delete existing highlight with same text (colour update — keep only latest)
+            val existing = highlightDao.getForQuestion(q.question.id).first()
+
+            // Delete exact match first
             highlightDao.deleteByQuestionAndText(q.question.id, text)
+
+            for (hl in existing) {
+                if (hl.text == text) continue // already deleted above
+
+                if (hl.text.contains(text)) {
+                    // Existing highlight is a superset — split it around the new selection
+                    highlightDao.deleteById(hl.id)
+                    val idx    = hl.text.indexOf(text)
+                    val before = hl.text.substring(0, idx).trim()
+                    val after  = hl.text.substring(idx + text.length).trim()
+                    if (before.isNotBlank())
+                        highlightDao.insert(HighlightEntity(questionId = q.question.id, text = before, color = hl.color))
+                    if (after.isNotBlank())
+                        highlightDao.insert(HighlightEntity(questionId = q.question.id, text = after, color = hl.color))
+                } else if (text.contains(hl.text)) {
+                    // Existing highlight is fully covered by new selection — remove it
+                    highlightDao.deleteById(hl.id)
+                }
+            }
+
             highlightDao.insert(HighlightEntity(questionId = q.question.id, text = text, color = color.name))
             loadHighlights(q.question.id)
         }

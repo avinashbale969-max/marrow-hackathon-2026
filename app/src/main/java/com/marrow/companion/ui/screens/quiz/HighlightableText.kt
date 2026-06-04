@@ -136,7 +136,7 @@ fun HighlightableText(
     val annotated = remember(text, highlights) {
         buildAnnotatedString {
             append(text)
-            highlights.forEach { hl ->
+            highlights.sortedByDescending { it.text.length }.forEach { hl ->
                 var start = 0
                 while (true) {
                     val idx = text.indexOf(hl.text, start)
