@@ -52,6 +52,7 @@ fun QuizScreen(
     random: Boolean,
     startFresh: Boolean = false,
     onFinish: () -> Unit,
+    onMcqClick: ((Long) -> Unit)? = null,
     viewModel: QuizViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
@@ -103,7 +104,8 @@ fun QuizScreen(
             bookmarked    = state.reviewBookmarked,
             notesMap      = state.reviewNotes,
             highlightsMap = state.reviewHighlights,
-            onDone        = onFinish
+            onDone        = onFinish,
+            onMcqClick    = onMcqClick
         )
         return
     }
@@ -152,7 +154,8 @@ fun QuizScreen(
                 subjectId       = subjectId,
                 onNext          = { showExplanation = false; viewModel.nextQuestion() },
                 onClose         = handleClose,
-                onBookmarkClick = { showBookmarkPopup = true }
+                onBookmarkClick = { showBookmarkPopup = true },
+                onMcqClick      = onMcqClick
             )
         } else {
             // ── Question view ─────────────────────────────────────────────────
@@ -366,7 +369,8 @@ private fun ExplanationScreen(
     subjectId: Long? = null,
     onNext: () -> Unit,
     onClose: () -> Unit,
-    onBookmarkClick: () -> Unit
+    onBookmarkClick: () -> Unit,
+    onMcqClick: ((Long) -> Unit)? = null
 ) {
     val q          = state.currentQuestion ?: return
     val totalVotes = state.optionStats.values.sum().coerceAtLeast(1)
@@ -393,6 +397,7 @@ private fun ExplanationScreen(
             onDeleteNote      = { viewModel.deleteNote(it) },
             onAddNote         = { text, tag, quote -> viewModel.addNote(text, tag, quote) },
             onEditNote        = { note, text, tag -> viewModel.updateNote(note, text, tag) },
+            onMcqClick        = onMcqClick,
             onDismiss         = { showNotesSheet = false }
         )
     }
@@ -577,7 +582,8 @@ private fun ExplanationScreen(
                 text                = q.question.explanation,
                 highlights          = state.highlights,
                 notes               = tagNotes,
-                onHighlight         = { text, color -> viewModel.addHighlight(text, color) },
+                onHighlight         = { text, color, offset -> viewModel.addHighlight(text, color, offset) },
+                onDeleteHighlight   = { hl -> viewModel.deleteHighlight(hl) },
                 onTagSelected       = { selectedText ->
                     pendingTagQuote = selectedText
                     showTagDialog   = true

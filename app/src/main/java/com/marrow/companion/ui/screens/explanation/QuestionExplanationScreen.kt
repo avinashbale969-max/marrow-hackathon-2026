@@ -111,13 +111,13 @@ class QuestionExplanationViewModel @Inject constructor(
         }
     }
 
-    fun addHighlight(text: String, color: HighlightColor) {
+    fun addHighlight(text: String, color: HighlightColor, startOffset: Int = -1) {
         val qwo = _state.value.qwo ?: return
         viewModelScope.launch {
             // Delete existing highlight with same text (colour update — keep only latest)
             highlightDao.deleteByQuestionAndText(qwo.question.id, text)
             highlightDao.insert(HighlightEntity(questionId = qwo.question.id,
-                text = text, color = color.name))
+                text = text, color = color.name, startOffset = startOffset))
         }
     }
 
@@ -183,6 +183,7 @@ fun QuestionExplanationScreen(
     questionId: Long,
     initialSelectedId: Long? = null,
     onBack: () -> Unit,
+    onMcqClick: ((Long) -> Unit)? = null,
     viewModel: QuestionExplanationViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
@@ -210,6 +211,7 @@ fun QuestionExplanationScreen(
             onDeleteNote      = { viewModel.deleteNote(it) },
             onAddNote         = { text, tag, quote -> viewModel.addNote(text, tag, quote) },
             onEditNote        = { note, text, tag -> viewModel.updateNote(note, text, tag) },
+            onMcqClick        = onMcqClick,
             onDismiss         = { showNotesSheet = false }
         )
     }
@@ -349,7 +351,8 @@ fun QuestionExplanationScreen(
                             text                = qwo.question.explanation,
                             highlights          = state.highlights,
                             notes               = tagNotes,
-                            onHighlight         = { text, color -> viewModel.addHighlight(text, color) },
+                            onHighlight         = { text, color, offset -> viewModel.addHighlight(text, color, offset) },
+                            onDeleteHighlight   = { hl -> viewModel.deleteHighlight(hl) },
                             onTagSelected       = { sel -> pendingTagQuote = sel; showTagDialog = true },
                             onDeleteTag         = { note -> viewModel.deleteNote(note) },
                             onEditTag           = { note, txt ->

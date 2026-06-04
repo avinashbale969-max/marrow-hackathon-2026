@@ -6,6 +6,7 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -23,11 +24,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInWindow
-import android.content.ClipboardManager as AndroidClipboardManager
-import android.content.Context
-import androidx.compose.ui.platform.ClipboardManager
 import androidx.compose.ui.platform.LocalClipboardManager
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalTextToolbar
 import androidx.compose.ui.platform.LocalView
@@ -37,6 +34,7 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -62,7 +60,8 @@ fun HighlightableText(
     text: String,
     highlights: List<HighlightEntity>,
     notes: List<NoteEntity> = emptyList(),
-    onHighlight: (String, HighlightColor) -> Unit,
+    onHighlight: (String, HighlightColor, Int) -> Unit,
+    onDeleteHighlight: ((HighlightEntity) -> Unit)? = null,
     onTagSelected: ((String) -> Unit)? = null,
     onDeleteTag: ((NoteEntity) -> Unit)? = null,
     onEditTag: ((NoteEntity, String) -> Unit)? = null,
@@ -71,49 +70,28 @@ fun HighlightableText(
     onTranslateSelected: OnTranslateSelected? = null,
     modifier: Modifier = Modifier
 ) {
-    // Internal clipboard — captures selected text WITHOUT writing to system clipboard
-    val internalClip = remember { mutableStateOf<androidx.compose.ui.text.AnnotatedString?>(null) }
-    val fakeClipboard: ClipboardManager = remember {
-        object : ClipboardManager {
-            override fun getText() = internalClip.value
-            override fun setText(s: androidx.compose.ui.text.AnnotatedString) { internalClip.value = s }
-        }
-    }
-    val clipboardManager = fakeClipboard  // never touches system clipboard
-
-    // Block Android system clipboard — clears any text written while explanation is visible
-    val context = LocalContext.current
-    DisposableEffect(Unit) {
-        val sysClipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as? AndroidClipboardManager
-        val listener = AndroidClipboardManager.OnPrimaryClipChangedListener {
-            // Only clear if there's actual text (prevents infinite loop from clearPrimaryClip itself)
-            val text = sysClipboard?.primaryClip?.getItemAt(0)?.text?.toString() ?: ""
-            if (text.isNotEmpty()) {
-                sysClipboard?.clearPrimaryClip()
-            }
-        }
-        sysClipboard?.addPrimaryClipChangedListener(listener)
-        onDispose { sysClipboard?.removePrimaryClipChangedListener(listener) }
-    }
-
+    val clipboardManager = LocalClipboardManager.current
     val coroutineScope   = rememberCoroutineScope()
     val density          = LocalDensity.current
     val view             = LocalView.current
     val focusManager     = androidx.compose.ui.platform.LocalFocusManager.current
 
-    var showPicker        by remember { mutableStateOf(false) }
-    var userDismissed     by remember { mutableStateOf(false) }
-    var pendingCopy       by remember { mutableStateOf<(() -> Unit)?>(null) }
-    var lastHighlightText by remember { mutableStateOf("") }
+    var showPicker            by remember { mutableStateOf(false) }
+    var userDismissed         by remember { mutableStateOf(false) }
+    var pendingCopy           by remember { mutableStateOf<(() -> Unit)?>(null) }
+    var lastHighlightText     by remember { mutableStateOf("") }
+    var pendingSelectionOffset by remember { mutableIntStateOf(-1) }
     var popupOffset  by remember { mutableStateOf(IntOffset.Zero) }
     // Store LayoutCoordinates so positionInWindow() is called FRESH inside showMenu
     // (fresh call walks the transform chain including current scroll transform)
     val boxCoords = remember { mutableStateOf<androidx.compose.ui.layout.LayoutCoordinates?>(null) }
 
-    var textLayout   by remember { mutableStateOf<TextLayoutResult?>(null) }
-    var editingNote  by remember { mutableStateOf<NoteEntity?>(null) }
-    var previewNote  by remember { mutableStateOf<NoteEntity?>(null) }
+    var textLayout    by remember { mutableStateOf<TextLayoutResult?>(null) }
+    var editingNote   by remember { mutableStateOf<NoteEntity?>(null) }
+    var previewNote   by remember { mutableStateOf<NoteEntity?>(null) }
     var previewOffset by remember { mutableStateOf(IntOffset.Zero) }
+    var removeTarget  by remember { mutableStateOf<HighlightEntity?>(null) }
+    var removeOffset  by remember { mutableStateOf(IntOffset.Zero) }
 
     val flashAlpha = remember { Animatable(0f) }
 
@@ -148,6 +126,13 @@ fun HighlightableText(
                 val x        = (cx - boxX - toolbarW / 2).coerceIn(0, view.width - toolbarW - 8)
                 val y        = (rect.top.toInt() - boxY - toolbarH - caret - 8).coerceAtLeast(0)
 
+                // Compute which character the selection midpoint falls on
+                val relX = (rect.left + rect.right) / 2f - boxX
+                val relY = (rect.top  + rect.bottom) / 2f - boxY
+                pendingSelectionOffset = textLayout?.getOffsetForPosition(
+                    androidx.compose.ui.geometry.Offset(relX, relY)
+                ) ?: -1
+
                 popupOffset = IntOffset(x, y)
                 if (!userDismissed) showPicker = true
             }
@@ -164,18 +149,23 @@ fun HighlightableText(
     val annotated = remember(text, highlights) {
         buildAnnotatedString {
             append(text)
-            highlights.forEach { hl ->
-                var start = 0
-                while (true) {
-                    val idx = text.indexOf(hl.text, start)
-                    if (idx < 0) break
+            highlights.sortedByDescending { it.text.length }.forEach { hl ->
+                // Use the stored offset when available — highlights only that exact occurrence.
+                // Fall back to first occurrence only for legacy entries (startOffset == -1).
+                val idx = if (hl.startOffset >= 0 &&
+                              hl.startOffset + hl.text.length <= text.length &&
+                              text.substring(hl.startOffset, hl.startOffset + hl.text.length) == hl.text) {
+                    hl.startOffset
+                } else {
+                    text.indexOf(hl.text)
+                }
+                if (idx >= 0) {
                     addStyle(
                         SpanStyle(
                             background = if (hl.color == HighlightColor.ORANGE.name) OrangeBg else GreenBg,
                             fontWeight = FontWeight.Medium
                         ), idx, idx + hl.text.length
                     )
-                    start = idx + hl.text.length
                 }
             }
         }
@@ -198,16 +188,38 @@ fun HighlightableText(
         )
     }
 
-    Box(
-        modifier = modifier.onGloballyPositioned { coords ->
-            boxCoords.value = coords   // keep the live reference, not just a snapshot
+    // Helper: find the highlight (if any) whose span covers charOffset
+    fun highlightAt(charOffset: Int): HighlightEntity? =
+        highlights.firstOrNull { hl ->
+            val idx = if (hl.startOffset >= 0 &&
+                          hl.startOffset + hl.text.length <= text.length &&
+                          text.substring(hl.startOffset, hl.startOffset + hl.text.length) == hl.text)
+                hl.startOffset else text.indexOf(hl.text)
+            idx >= 0 && charOffset >= idx && charOffset < idx + hl.text.length
         }
+
+    Box(
+        modifier = modifier
+            .onGloballyPositioned { coords -> boxCoords.value = coords }
+            .pointerInput(highlights, text) {
+                detectTapGestures { tapOffset ->
+                    if (onDeleteHighlight == null) return@detectTapGestures
+                    val layout = textLayout ?: return@detectTapGestures
+                    val charOffset = layout.getOffsetForPosition(tapOffset)
+                    val hit = highlightAt(charOffset)
+                    if (hit != null) {
+                        val bbox = layout.getBoundingBox(charOffset)
+                        removeOffset = IntOffset(
+                            (tapOffset.x.toInt() - with(density) { 80.dp.roundToPx() }).coerceAtLeast(0),
+                            (bbox.top.toInt() - with(density) { 52.dp.roundToPx() }).coerceAtLeast(0)
+                        )
+                        removeTarget = hit
+                    }
+                }
+            }
     ) {
         // ── Explanation text — pushed right when stickies exist ───────────
-        CompositionLocalProvider(
-            LocalTextToolbar  provides toolbar,
-            LocalClipboardManager provides fakeClipboard   // intercept copy → no system clipboard
-        ) {
+        CompositionLocalProvider(LocalTextToolbar provides toolbar) {
             SelectionContainer {
                 Text(
                     text       = annotated,
@@ -300,6 +312,33 @@ fun HighlightableText(
             }
         }
 
+        // ── Remove-highlight popup (appears when user taps a highlight) ──────
+        removeTarget?.let { hl ->
+            Popup(
+                alignment        = Alignment.TopStart,
+                offset           = removeOffset,
+                onDismissRequest = { removeTarget = null },
+                properties       = PopupProperties(focusable = true, dismissOnClickOutside = true)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .shadow(6.dp, RoundedCornerShape(20.dp))
+                        .clip(RoundedCornerShape(20.dp))
+                        .background(Color(0xFF1A1A1A))
+                        .clickable {
+                            onDeleteHighlight?.invoke(hl)
+                            removeTarget = null
+                        }
+                        .padding(horizontal = 16.dp, vertical = 9.dp)
+                ) {
+                    Text("✕  Remove highlight",
+                        color      = Color.White,
+                        fontSize   = 13.sp,
+                        fontWeight = FontWeight.Medium)
+                }
+            }
+        }
+
         // ── Selection toolbar popup ───────────────────────────────────────
         if (showPicker) {
             Popup(
@@ -343,14 +382,14 @@ fun HighlightableText(
                                 horizontalArrangement = Arrangement.spacedBy(10.dp)
                             ) {
                                 ColorSwatch(GreenHL) {
-                                    doHighlight(HighlightColor.GREEN, pendingCopy, clipboardManager, coroutineScope) { t ->
-                                        onHighlight(t, HighlightColor.GREEN); lastHighlightText = t; showPicker = false
+                                    doHighlight(HighlightColor.GREEN, pendingCopy, clipboardManager, coroutineScope, text, pendingSelectionOffset) { t, offset ->
+                                        onHighlight(t, HighlightColor.GREEN, offset); lastHighlightText = t; showPicker = false
                                         coroutineScope.launch { flashAlpha.snapTo(1f); flashAlpha.animateTo(0f, tween(700)) }
                                     }
                                 }
                                 ColorSwatch(OrangeHL) {
-                                    doHighlight(HighlightColor.ORANGE, pendingCopy, clipboardManager, coroutineScope) { t ->
-                                        onHighlight(t, HighlightColor.ORANGE); lastHighlightText = t; showPicker = false
+                                    doHighlight(HighlightColor.ORANGE, pendingCopy, clipboardManager, coroutineScope, text, pendingSelectionOffset) { t, offset ->
+                                        onHighlight(t, HighlightColor.ORANGE, offset); lastHighlightText = t; showPicker = false
                                         coroutineScope.launch { flashAlpha.snapTo(1f); flashAlpha.animateTo(0f, tween(700)) }
                                     }
                                 }
@@ -366,8 +405,8 @@ fun HighlightableText(
                                 horizontalArrangement = Arrangement.spacedBy(14.dp)
                             ) {
                                 ActionText("✎ Highlight") {
-                                    doHighlight(HighlightColor.GREEN, pendingCopy, clipboardManager, coroutineScope) { t ->
-                                        onHighlight(t, HighlightColor.GREEN); lastHighlightText = t; showPicker = false
+                                    doHighlight(HighlightColor.GREEN, pendingCopy, clipboardManager, coroutineScope, text, pendingSelectionOffset) { t, offset ->
+                                        onHighlight(t, HighlightColor.GREEN, offset); lastHighlightText = t; showPicker = false
                                         coroutineScope.launch { flashAlpha.snapTo(1f); flashAlpha.animateTo(0f, tween(700)) }
                                     }
                                 }
@@ -376,7 +415,6 @@ fun HighlightableText(
                                         pendingCopy?.invoke()
                                         delay(80)
                                         val selected = clipboardManager.getText()?.text?.trim() ?: ""
-                                        clipboardManager.setText(androidx.compose.ui.text.AnnotatedString(""))
                                         if (selected.isNotBlank()) onTagSelected?.invoke(selected)
                                         showPicker = false
                                     }
@@ -386,9 +424,73 @@ fun HighlightableText(
                                         pendingCopy?.invoke()
                                         delay(80)
                                         val selected = clipboardManager.getText()?.text?.trim() ?: ""
-                                        clipboardManager.setText(androidx.compose.ui.text.AnnotatedString(""))
                                         if (selected.isNotBlank()) onTranslateSelected?.invoke(selected)
                                         showPicker = false
+                                    }
+                                }
+                                val selectionHit = highlightAt(pendingSelectionOffset)
+                                if (selectionHit != null && onDeleteHighlight != null) {
+                                    ActionText("✕ Remove") {
+                                        coroutineScope.launch {
+                                            // Copy selected text so we know exactly which portion to remove
+                                            pendingCopy?.invoke()
+                                            delay(80)
+                                            val selected = clipboardManager.getText()?.text?.trim() ?: ""
+
+                                            // Resolve the highlight's actual start index in the full text
+                                            val hlStart = if (selectionHit.startOffset >= 0 &&
+                                                              selectionHit.startOffset + selectionHit.text.length <= text.length &&
+                                                              text.substring(selectionHit.startOffset, selectionHit.startOffset + selectionHit.text.length) == selectionHit.text)
+                                                selectionHit.startOffset
+                                                else text.indexOf(selectionHit.text)
+                                            val hlEnd   = if (hlStart >= 0) hlStart + selectionHit.text.length else -1
+                                            val hlColor = HighlightColor.entries.firstOrNull { it.name == selectionHit.color } ?: HighlightColor.GREEN
+
+                                            if (selected.isBlank() || hlStart < 0 || hlEnd < 0) {
+                                                // Fallback: remove whole highlight
+                                                onDeleteHighlight.invoke(selectionHit)
+                                                showPicker = false
+                                                return@launch
+                                            }
+
+                                            val selStart = findOccurrenceStart(text, selected, pendingSelectionOffset)
+                                            val selEnd   = if (selStart >= 0) selStart + selected.length else -1
+
+                                            if (selStart < 0 || selEnd < 0) {
+                                                onDeleteHighlight.invoke(selectionHit)
+                                                showPicker = false
+                                                return@launch
+                                            }
+
+                                            // Clamp the removed range to the highlight's actual range
+                                            val removeStart = maxOf(hlStart, selStart)
+                                            val removeEnd   = minOf(hlEnd, selEnd)
+
+                                            // Delete the original highlight first
+                                            onDeleteHighlight.invoke(selectionHit)
+
+                                            if (removeStart < removeEnd) {
+                                                // Re-create the part BEFORE the removed section
+                                                if (removeStart > hlStart) {
+                                                    val rawBefore  = text.substring(hlStart, removeStart)
+                                                    val trimBefore = rawBefore.trim()
+                                                    if (trimBefore.isNotBlank()) {
+                                                        val leadingSpaces = rawBefore.length - rawBefore.trimStart().length
+                                                        onHighlight(trimBefore, hlColor, hlStart + leadingSpaces)
+                                                    }
+                                                }
+                                                // Re-create the part AFTER the removed section
+                                                if (removeEnd < hlEnd) {
+                                                    val rawAfter  = text.substring(removeEnd, hlEnd)
+                                                    val trimAfter = rawAfter.trim()
+                                                    if (trimAfter.isNotBlank()) {
+                                                        val leadingSpaces = rawAfter.length - rawAfter.trimStart().length
+                                                        onHighlight(trimAfter, hlColor, removeEnd + leadingSpaces)
+                                                    }
+                                                }
+                                            }
+                                            showPicker = false
+                                        }
                                     }
                                 }
                             }
@@ -524,15 +626,51 @@ private fun doHighlight(
     pendingCopy: (() -> Unit)?,
     clipboardManager: androidx.compose.ui.platform.ClipboardManager,
     scope: kotlinx.coroutines.CoroutineScope,
-    onDone: (String) -> Unit
+    fullText: String,
+    selectionOffset: Int,
+    onDone: (String, Int) -> Unit
 ) {
     scope.launch {
-        pendingCopy?.invoke()       // writes to fakeClipboard — never system clipboard
+        pendingCopy?.invoke()
         delay(80)
         val selected = clipboardManager.getText()?.text?.trim() ?: ""
-        clipboardManager.setText(androidx.compose.ui.text.AnnotatedString(""))  // clear immediately
-        if (selected.isNotBlank()) onDone(selected)
+        if (selected.isNotBlank()) {
+            val startOffset = findOccurrenceStart(fullText, selected, selectionOffset)
+            onDone(selected, startOffset)
+        }
     }
+}
+
+/**
+ * Returns the start index of the occurrence of [selected] in [fullText] that
+ * contains (or is closest to) [nearOffset].  Returns -1 if [selected] is not
+ * found at all.
+ */
+private fun findOccurrenceStart(fullText: String, selected: String, nearOffset: Int): Int {
+    if (nearOffset < 0) return fullText.indexOf(selected)
+
+    // First pass: find the occurrence whose range contains nearOffset
+    var pos = 0
+    while (true) {
+        val idx = fullText.indexOf(selected, pos)
+        if (idx < 0) break
+        if (idx <= nearOffset && nearOffset <= idx + selected.length) return idx
+        pos = idx + 1
+    }
+
+    // Second pass: find the occurrence whose midpoint is closest to nearOffset
+    var bestIdx  = -1
+    var bestDist = Int.MAX_VALUE
+    pos = 0
+    while (true) {
+        val idx = fullText.indexOf(selected, pos)
+        if (idx < 0) break
+        val mid  = idx + selected.length / 2
+        val dist = kotlin.math.abs(mid - nearOffset)
+        if (dist < bestDist) { bestDist = dist; bestIdx = idx }
+        pos = idx + 1
+    }
+    return bestIdx
 }
 
 @Composable

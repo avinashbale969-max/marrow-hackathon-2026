@@ -23,7 +23,11 @@ import com.marrow.companion.data.database.entities.PausedQuizEntity
         NoteEntity::class,
         PausedQuizEntity::class
     ],
+
     version = 18,
+=======
+    version = 12,
+>>>>>>> origin/Sri_hackthon
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {

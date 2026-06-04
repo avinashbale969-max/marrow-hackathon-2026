@@ -16,6 +16,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -37,6 +38,7 @@ fun TopicNotesScreen(
     subjectId: Long,
     topicId: Long,
     onBack: () -> Unit,
+    onMcqClick: (Long) -> Unit = {},
     viewModel: SubjectsViewModel = hiltViewModel()
 ) {
     val topics     by viewModel.getTopicsForSubject(subjectId).collectAsState(initial = emptyList())
@@ -112,7 +114,8 @@ fun TopicNotesScreen(
                     } else {
                         items(highlights) { hl ->
                             HighlightCard(hl,
-                                onDelete = { viewModel.deleteHighlight(hl.id) })
+                                onDelete   = { viewModel.deleteHighlight(hl.id) },
+                                onMcqClick = onMcqClick)
                         }
                     }
                 }
@@ -231,7 +234,7 @@ private fun NoteCard(note: NoteEntity) {
 }
 
 @Composable
-private fun HighlightCard(hl: HighlightEntity, onDelete: (() -> Unit)? = null) {
+private fun HighlightCard(hl: HighlightEntity, onDelete: (() -> Unit)? = null, onMcqClick: ((Long) -> Unit)? = null) {
     var showConfirm by remember { mutableStateOf(false) }
     if (showConfirm) {
         com.marrow.companion.ui.common.ConfirmDeleteDialog(
@@ -251,25 +254,44 @@ private fun HighlightCard(hl: HighlightEntity, onDelete: (() -> Unit)? = null) {
         colors    = CardDefaults.cardColors(containerColor = bg),
         elevation = CardDefaults.cardElevation(0.dp)
     ) {
-        Row(
+        Column(
             modifier = Modifier.padding(14.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-            verticalAlignment = Alignment.Top
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Box(
-                Modifier.width(4.dp).heightIn(min = 16.dp)
-                    .background(accent).clip(RoundedCornerShape(2.dp))
-            )
-            Text(
-                "\"${hl.text}\"",
-                fontSize  = 14.sp,
-                lineHeight = 21.sp,
-                color     = Color(0xFF333333),
-                modifier  = Modifier.weight(1f)
-            )
-            if (onDelete != null) {
-                Icon(Icons.Filled.Delete, null, tint = accent.copy(alpha = 0.5f),
-                    modifier = Modifier.size(16.dp).clickable { showConfirm = true })
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalAlignment = Alignment.Top
+            ) {
+                Box(
+                    Modifier.width(4.dp).heightIn(min = 16.dp)
+                        .background(accent).clip(RoundedCornerShape(2.dp))
+                )
+                Text(
+                    "\"${hl.text}\"",
+                    fontSize   = 14.sp,
+                    lineHeight = 21.sp,
+                    color      = Color(0xFF333333),
+                    modifier   = Modifier.weight(1f)
+                )
+                if (onDelete != null) {
+                    Icon(Icons.Filled.Delete, null, tint = accent.copy(alpha = 0.5f),
+                        modifier = Modifier.size(16.dp).clickable { showConfirm = true })
+                }
+            }
+            if (onMcqClick != null) {
+                val label = "MRW-${hl.questionId.toString().padStart(5, '0')}"
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(20.dp))
+                            .background(accent)
+                            .clickable { onMcqClick(hl.questionId) }
+                            .padding(horizontal = 12.dp, vertical = 5.dp)
+                    ) {
+                        Text(label, fontSize = 11.sp, fontWeight = FontWeight.Bold,
+                             fontFamily = FontFamily.Monospace, color = Color.White)
+                    }
+                }
             }
         }
     }

@@ -24,6 +24,7 @@ import com.marrow.companion.ui.screens.profile.VideoNotesScreen
 import com.marrow.companion.ui.screens.profile.VideoSubjectScreen
 import com.marrow.companion.ui.screens.quiz.QuizScreen
 import com.marrow.companion.ui.screens.bookmarks.SubjectBookmarksScreen
+import com.marrow.companion.ui.screens.splash.SplashScreen
 import com.marrow.companion.ui.screens.subjects.AllNotesScreen
 import com.marrow.companion.ui.screens.subjects.SubjectNotesScreen
 import com.marrow.companion.ui.screens.subjects.SubjectsScreen
@@ -69,9 +70,19 @@ fun AppNavGraph() {
     ) { padding ->
         NavHost(
             navController = navController,
-            startDestination = NavRoutes.Login.route,
+            startDestination = NavRoutes.Splash.route,
             modifier = Modifier.padding(padding)
         ) {
+            composable(NavRoutes.Splash.route) {
+                SplashScreen(
+                    onNavigate = {
+                        navController.navigate(NavRoutes.Dashboard.route) {
+                            popUpTo(NavRoutes.Splash.route) { inclusive = true }
+                        }
+                    }
+                )
+            }
+
             composable(NavRoutes.Login.route) {
                 LoginScreen(
                     onLoginSuccess = {
@@ -116,9 +127,10 @@ fun AppNavGraph() {
                 val qId   = backStack.arguments?.getLong("questionId")       ?: return@composable
                 val selId = backStack.arguments?.getLong("selectedOptionId") ?: -1L
                 QuestionExplanationScreen(
-                    questionId       = qId,
+                    questionId        = qId,
                     initialSelectedId = selId.takeIf { it != -1L },
-                    onBack           = { navController.popBackStack() }
+                    onBack            = { navController.popBackStack() },
+                    onMcqClick        = { id -> navController.navigate(NavRoutes.QuestionExplanation.create(id)) }
                 )
             }
 
@@ -137,23 +149,38 @@ fun AppNavGraph() {
                     onBack = { navController.popBackStack() },
                     onSubjectClick = { subjectId ->
                         if (subjectId == -1L) {
-                            // "All Subjects" — show combined: navigate with special id
                             navController.navigate(NavRoutes.SubjectNotes.create(0L))
                         } else {
                             navController.navigate(NavRoutes.SubjectNotes.create(subjectId))
                         }
-                    }
+                    },
+                    onNotesClick  = { navController.navigate(NavRoutes.SubjectNotes.create(0L, tab = 0)) },
+                    onGreenClick  = { navController.navigate(NavRoutes.SubjectNotes.create(0L, tab = 1, color = "GREEN")) },
+                    onOrangeClick = { navController.navigate(NavRoutes.SubjectNotes.create(0L, tab = 1, color = "ORANGE")) }
                 )
             }
 
             composable(
                 route = NavRoutes.SubjectNotes.route,
-                arguments = listOf(navArgument("subjectId") { type = NavType.LongType })
+                arguments = listOf(
+                    navArgument("subjectId") { type = NavType.LongType },
+                    navArgument("tab")       { type = NavType.IntType;    defaultValue = 0  },
+                    navArgument("color")     { type = NavType.StringType; defaultValue = "" }
+                )
             ) { backStack ->
                 val subjectId = backStack.arguments?.getLong("subjectId") ?: return@composable
+                val tab       = backStack.arguments?.getInt("tab")        ?: 0
+                val color     = backStack.arguments?.getString("color")   ?: ""
                 SubjectNotesScreen(
-                    subjectId = subjectId,
-                    onBack    = { navController.popBackStack() }
+                    subjectId          = subjectId,
+                    onBack             = { navController.popBackStack() },
+                    initialTab         = tab,
+                    initialColorFilter = color,
+                    onMcqClick         = { questionId ->
+                        navController.navigate(
+                            NavRoutes.QuestionExplanation.create(questionId)
+                        )
+                    }
                 )
             }
 
@@ -254,9 +281,10 @@ fun AppNavGraph() {
                 val subjectId = backStack.arguments?.getLong("subjectId") ?: return@composable
                 val topicId   = backStack.arguments?.getLong("topicId")   ?: return@composable
                 TopicNotesScreen(
-                    subjectId = subjectId,
-                    topicId   = topicId,
-                    onBack    = { navController.popBackStack() }
+                    subjectId  = subjectId,
+                    topicId    = topicId,
+                    onBack     = { navController.popBackStack() },
+                    onMcqClick = { qId -> navController.navigate(NavRoutes.QuestionExplanation.create(qId)) }
                 )
             }
 
@@ -278,7 +306,8 @@ fun AppNavGraph() {
                     topicId    = topicId,
                     random     = random,
                     startFresh = fresh,
-                    onFinish   = { navController.popBackStack() }
+                    onFinish   = { navController.popBackStack() },
+                    onMcqClick = { qId -> navController.navigate(NavRoutes.QuestionExplanation.create(qId)) }
                 )
             }
 

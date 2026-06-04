@@ -18,6 +18,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.draw.shadow
@@ -41,6 +42,9 @@ private val OrangeHL = Color(0xFFFFA726)
 fun AllNotesScreen(
     onBack: () -> Unit,
     onSubjectClick: (Long) -> Unit = {},
+    onNotesClick: () -> Unit = {},
+    onGreenClick: () -> Unit = {},
+    onOrangeClick: () -> Unit = {},
     viewModel: SubjectsViewModel = hiltViewModel()
 ) {
     val allNotes       by viewModel.getAllNotesWithSubject().collectAsState(initial = emptyList())
@@ -106,11 +110,13 @@ fun AllNotesScreen(
                     horizontalArrangement = Arrangement.spacedBy(28.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    TypePill(Icons.Filled.Edit, Teal, allNotes.size, "Notes")
+                    TypePill(Icons.Filled.Edit, Teal, allNotes.size, "Notes", onClick = onNotesClick)
                     TypePill(Icons.Filled.Highlight, GreenHL,
-                        allHighlights.count { it.color != HighlightColor.ORANGE.name }, "Green")
+                        allHighlights.count { it.color != HighlightColor.ORANGE.name }, "Green",
+                        onClick = onGreenClick)
                     TypePill(Icons.Filled.Highlight, OrangeHL,
-                        allHighlights.count { it.color == HighlightColor.ORANGE.name }, "Orange")
+                        allHighlights.count { it.color == HighlightColor.ORANGE.name }, "Orange",
+                        onClick = onOrangeClick)
                 }
                 HorizontalDivider(color = Color(0xFFEEEEEE))
             }
@@ -156,10 +162,14 @@ fun AllNotesScreen(
 @Composable
 private fun TypePill(
     icon: androidx.compose.ui.graphics.vector.ImageVector,
-    color: Color, count: Int, label: String
+    color: Color, count: Int, label: String,
+    onClick: () -> Unit = {}
 ) {
-    Row(verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        modifier = Modifier.clickable(onClick = onClick)
+    ) {
         Box(Modifier.size(32.dp).clip(CircleShape).background(color.copy(alpha = 0.15f)),
             contentAlignment = Alignment.Center) {
             Icon(icon, null, tint = color, modifier = Modifier.size(16.dp))
@@ -178,6 +188,9 @@ private fun TypePill(
 fun SubjectNotesScreen(
     subjectId: Long,
     onBack: () -> Unit,
+    initialTab: Int = 0,
+    initialColorFilter: String = "",
+    onMcqClick: (Long) -> Unit = {},
     viewModel: SubjectsViewModel = hiltViewModel()
 ) {
     val isAll = subjectId == 0L
@@ -191,7 +204,8 @@ fun SubjectNotesScreen(
     val tags       by (if (isAll) viewModel.getAllTagsWithSubject()
         else viewModel.getTagsWithSubject(subjectId)).collectAsState(initial = emptyList())
 
-    var selectedTab  by remember { mutableIntStateOf(0) }
+    var selectedTab  by remember { mutableIntStateOf(initialTab) }
+    var colorFilter  by remember { mutableStateOf(initialColorFilter) }
     var searchQuery  by remember { mutableStateOf("") }
     var showSearch   by remember { mutableStateOf(false) }
 
@@ -314,14 +328,15 @@ fun SubjectNotesScreen(
                         if (filteredNotes.isNotEmpty()) {
                             item { SearchSectionHeader("✎ Notes (${filteredNotes.size})") }
                             items(filteredNotes, key = { "n${it.id}" }) { note ->
-                                NoteCard(note, showSubject = isAll)
+                                NoteCard(note, showSubject = isAll, onMcqClick = onMcqClick)
                             }
                         }
                         if (filteredHighlights.isNotEmpty()) {
                             item { SearchSectionHeader("Highlights (${filteredHighlights.size})") }
                             items(filteredHighlights, key = { "h${it.id}" }) { hl ->
                                 HighlightCard(hl, showSubject = isAll,
-                                    onDelete = { viewModel.deleteHighlight(hl.id) })
+                                    onDelete = { viewModel.deleteHighlight(hl.id) },
+                                    onMcqClick = onMcqClick)
                             }
                         }
                     }
@@ -334,8 +349,53 @@ fun SubjectNotesScreen(
             }
             HorizontalDivider(color = Color(0xFFEEEEEE))
 
-            val currentItems = if (selectedTab == 0) notes else highlights
-            val emptyMsg = if (selectedTab == 0) "No notes yet" else "No highlights yet"
+            // Color filter chips — shown only in Highlights tab
+            if (selectedTab == 1) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(Color.White)
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    FilterChip(
+                        selected = colorFilter.isEmpty(),
+                        onClick  = { colorFilter = "" },
+                        label    = { Text("All", fontSize = 12.sp) },
+                        colors   = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = Teal.copy(alpha = 0.15f),
+                            selectedLabelColor     = Teal
+                        )
+                    )
+                    FilterChip(
+                        selected = colorFilter == "GREEN",
+                        onClick  = { colorFilter = if (colorFilter == "GREEN") "" else "GREEN" },
+                        label    = { Text("Green", fontSize = 12.sp) },
+                        colors   = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = GreenHL.copy(alpha = 0.15f),
+                            selectedLabelColor     = GreenHL
+                        )
+                    )
+                    FilterChip(
+                        selected = colorFilter == "ORANGE",
+                        onClick  = { colorFilter = if (colorFilter == "ORANGE") "" else "ORANGE" },
+                        label    = { Text("Orange", fontSize = 12.sp) },
+                        colors   = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = OrangeHL.copy(alpha = 0.15f),
+                            selectedLabelColor     = OrangeHL
+                        )
+                    )
+                }
+                HorizontalDivider(color = Color(0xFFEEEEEE))
+            }
+
+            val displayedHighlights = if (colorFilter.isEmpty()) highlights
+                                      else highlights.filter { it.color == colorFilter }
+            val currentItems = if (selectedTab == 0) notes else displayedHighlights
+            val emptyMsg = if (selectedTab == 0) "No notes yet"
+                           else if (colorFilter.isEmpty()) "No highlights yet"
+                           else "No ${colorFilter.lowercase()} highlights yet"
 
             if (currentItems.isEmpty()) {
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -348,11 +408,14 @@ fun SubjectNotesScreen(
                     verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     if (selectedTab == 0) {
-                        items(notes, key = { it.id }) { NoteCard(it, showSubject = isAll) }
+                        items(notes, key = { it.id }) {
+                            NoteCard(it, showSubject = isAll, onMcqClick = onMcqClick)
+                        }
                     } else {
-                        items(highlights, key = { it.id }) {
+                        items(displayedHighlights, key = { it.id }) {
                             HighlightCard(it, showSubject = isAll,
-                                onDelete = { viewModel.deleteHighlight(it.id) })
+                                onDelete = { viewModel.deleteHighlight(it.id) },
+                                onMcqClick = onMcqClick)
                         }
                     }
                 }
@@ -406,7 +469,11 @@ private fun NotesDetailTab(
 // ── Cards with subject name label ─────────────────────────────────────────────
 
 @Composable
-private fun NoteCard(note: NoteWithSubject, showSubject: Boolean) {
+private fun NoteCard(
+    note: NoteWithSubject,
+    showSubject: Boolean,
+    onMcqClick: ((Long) -> Unit)? = null
+) {
     val tagColor = when (note.tag) {
         NoteTag.IMP.name   -> Color(0xFFFFC107)
         NoteTag.DOUBT.name -> Color(0xFF2196F3)
@@ -452,11 +519,18 @@ private fun NoteCard(note: NoteWithSubject, showSubject: Boolean) {
                 }
             }
 
-            // Subject • Topic (always show)
+            // Subject • Topic
             SubjectTopicLabel(
                 subjectName = note.subjectName,
                 topicName   = note.topicName,
                 color       = Color(0xFF888888)
+            )
+
+            // MCQ ID pill
+            McqIdPill(
+                questionId = note.questionId,
+                accentColor = Teal,
+                onClick     = onMcqClick
             )
         }
     }
@@ -496,6 +570,39 @@ private fun TagCard(tag: NoteWithSubject, showSubject: Boolean) {
     }
 }
 
+/** Tappable MCQ-ID badge. Formats questionId as "MRW-XXXXX". */
+@Composable
+private fun McqIdPill(
+    questionId: Long,
+    accentColor: Color,
+    onClick: ((Long) -> Unit)?
+) {
+    val label = "MRW-${questionId.toString().padStart(5, '0')}"
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.End,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        if (onClick != null) {
+            Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(20.dp))
+                    .background(accentColor)
+                    .clickable { onClick(questionId) }
+                    .padding(horizontal = 12.dp, vertical = 5.dp)
+            ) {
+                Text(
+                    label,
+                    fontSize   = 11.sp,
+                    fontWeight = FontWeight.Bold,
+                    fontFamily = FontFamily.Monospace,
+                    color      = Color.White
+                )
+            }
+        }
+    }
+}
+
 @Composable
 private fun SubjectTopicLabel(subjectName: String, topicName: String?, color: Color) {
     Row(
@@ -515,7 +622,8 @@ private fun SubjectTopicLabel(subjectName: String, topicName: String?, color: Co
 private fun HighlightCard(
     hl: HighlightWithSubject,
     showSubject: Boolean,
-    onDelete: (() -> Unit)? = null
+    onDelete: (() -> Unit)? = null,
+    onMcqClick: ((Long) -> Unit)? = null
 ) {
     var showConfirm by remember { mutableStateOf(false) }
     if (showConfirm) {
@@ -552,6 +660,13 @@ private fun HighlightCard(
 
             SubjectTopicLabel(subjectName = hl.subjectName, topicName = hl.topicName,
                 color = Color(0xFF888888))
+
+            // MCQ ID pill
+            McqIdPill(
+                questionId  = hl.questionId,
+                accentColor = accent,
+                onClick     = onMcqClick
+            )
         }
     }
 }

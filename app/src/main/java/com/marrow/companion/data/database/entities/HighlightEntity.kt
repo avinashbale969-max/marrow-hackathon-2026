@@ -14,5 +14,6 @@ data class HighlightEntity(
     val color: String = HighlightColor.GREEN.name,
     val createdAt: Long = System.currentTimeMillis(),
     val lastReviewedAt: Long? = null,
-    val nextReviewDate: Long? = null   // null = due immediately
+    val nextReviewDate: Long? = null,
+    val startOffset: Int = -1
 )

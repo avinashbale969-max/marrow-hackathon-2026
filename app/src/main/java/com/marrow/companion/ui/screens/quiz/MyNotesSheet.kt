@@ -17,6 +17,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -44,6 +45,7 @@ fun MyNotesSheet(
     onDeleteNote: (NoteEntity) -> Unit,
     onAddNote: (String, NoteTag, String?) -> Unit,
     onEditNote: ((NoteEntity, String, NoteTag) -> Unit)? = null,
+    onMcqClick: ((Long) -> Unit)? = null,
     onDismiss: () -> Unit
 ) {
     var selectedTab      by remember { mutableIntStateOf(0) }
@@ -144,7 +146,8 @@ fun MyNotesSheet(
                     colorFilter   = hlColorFilter,
                     onFilterColor = { hlColorFilter = if (hlColorFilter == it) null else it },
                     onDelete      = onDeleteHighlight,
-                    onAddNote     = { quote -> pendingQuote = quote; showNoteInput = true }
+                    onAddNote     = { quote -> pendingQuote = quote; showNoteInput = true },
+                    onMcqClick    = onMcqClick
                 )
             }
         }
@@ -209,7 +212,8 @@ private fun HighlightsTab(
     colorFilter: String?,
     onFilterColor: (String) -> Unit,
     onDelete: (HighlightEntity) -> Unit,
-    onAddNote: (String) -> Unit
+    onAddNote: (String) -> Unit,
+    onMcqClick: ((Long) -> Unit)? = null
 ) {
     val filtered = if (colorFilter == null) highlights
     else highlights.filter { it.color == colorFilter }
@@ -239,9 +243,10 @@ private fun HighlightsTab(
             ) {
                 items(filtered) { hl ->
                     HighlightCard(
-                        highlight = hl,
-                        onDelete  = { onDelete(hl) },
-                        onAddNote = { onAddNote(hl.text) }
+                        highlight  = hl,
+                        onDelete   = { onDelete(hl) },
+                        onAddNote  = { onAddNote(hl.text) },
+                        onMcqClick = onMcqClick
                     )
                 }
             }
@@ -389,7 +394,8 @@ fun NoteCard(
 fun HighlightCard(
     highlight: HighlightEntity,
     onDelete: () -> Unit,
-    onAddNote: (() -> Unit)? = null
+    onAddNote: (() -> Unit)? = null,
+    onMcqClick: ((Long) -> Unit)? = null
 ) {
     var showConfirm by remember { mutableStateOf(false) }
     if (showConfirm) {
@@ -428,6 +434,21 @@ fun HighlightCard(
                     Text(timeStr, fontSize = 11.sp, color = Color.LightGray)
                     Icon(Icons.Filled.Delete, null, tint = Color(0xFFCCCCCC),
                         modifier = Modifier.size(16.dp).clickable { showConfirm = true })
+                }
+            }
+            if (onMcqClick != null) {
+                val label = "MRW-${highlight.questionId.toString().padStart(5, '0')}"
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(20.dp))
+                            .background(accentColor)
+                            .clickable { onMcqClick(highlight.questionId) }
+                            .padding(horizontal = 12.dp, vertical = 5.dp)
+                    ) {
+                        Text(label, fontSize = 11.sp, fontWeight = FontWeight.Bold,
+                             fontFamily = FontFamily.Monospace, color = Color.White)
+                    }
                 }
             }
         }

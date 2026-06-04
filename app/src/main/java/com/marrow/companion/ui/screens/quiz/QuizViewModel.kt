@@ -207,12 +207,50 @@ class QuizViewModel @Inject constructor(
         currentSubjectId?.let { pausedQuizDao.deleteForSubject(it) }
     }
 
-    fun addHighlight(text: String, color: HighlightColor) {
+    fun addHighlight(text: String, color: HighlightColor, startOffset: Int = -1) {
         val q = _state.value.currentQuestion ?: return
         viewModelScope.launch {
-            // Delete existing highlight with same text (colour update — keep only latest)
+            val existing = highlightDao.getForQuestion(q.question.id).first()
+
+            // Delete exact match first
             highlightDao.deleteByQuestionAndText(q.question.id, text)
-            highlightDao.insert(HighlightEntity(questionId = q.question.id, text = text, color = color.name))
+
+            for (hl in existing) {
+                if (hl.text == text) continue // already deleted above
+
+                if (hl.text.contains(text)) {
+                    // Existing highlight is a superset — split it around the new selection
+                    highlightDao.deleteById(hl.id)
+                    val idx       = hl.text.indexOf(text)
+                    val beforeRaw = hl.text.substring(0, idx)
+                    val afterRaw  = hl.text.substring(idx + text.length)
+                    val before    = beforeRaw.trim()
+                    val after     = afterRaw.trim()
+                    // Compute startOffset for each part (leading whitespace shifts the start)
+                    val beforeLeading = beforeRaw.length - beforeRaw.trimStart().length
+                    val afterLeading  = afterRaw.length  - afterRaw.trimStart().length
+                    if (before.isNotBlank())
+                        highlightDao.insert(HighlightEntity(
+                            questionId  = q.question.id, text = before, color = hl.color,
+                            startOffset = if (hl.startOffset >= 0) hl.startOffset + beforeLeading else -1
+                        ))
+                    if (after.isNotBlank())
+                        highlightDao.insert(HighlightEntity(
+                            questionId  = q.question.id, text = after, color = hl.color,
+                            startOffset = if (hl.startOffset >= 0) hl.startOffset + idx + text.length + afterLeading else -1
+                        ))
+                } else if (text.contains(hl.text)) {
+                    // Existing highlight is fully covered by new selection — remove it
+                    highlightDao.deleteById(hl.id)
+                }
+            }
+
+            highlightDao.insert(HighlightEntity(
+                questionId  = q.question.id,
+                text        = text,
+                color       = color.name,
+                startOffset = startOffset
+            ))
             loadHighlights(q.question.id)
         }
     }
