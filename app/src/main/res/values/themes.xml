@@ -1,17 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Base theme — no action bar, edge-to-edge for Android 11–16 -->
     <style name="Theme.MarrowCompanion" parent="android:Theme.Material.Light.NoActionBar">
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:navigationBarColor">@android:color/transparent</item>
         <item name="android:windowDrawsSystemBarBackgrounds">true</item>
-        <item name="android:windowLayoutInDisplayCutoutMode">shortEdges</item>
-    </style>
-
-    <!-- Splash screen (core-splashscreen backports to API 30) -->
-    <style name="Theme.MarrowCompanion.Splash" parent="Theme.SplashScreen">
-        <item name="windowSplashScreenBackground">#4DC8D4</item>
-        <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_launcher</item>
-        <item name="postSplashScreenTheme">@style/Theme.MarrowCompanion</item>
     </style>
 </resources>

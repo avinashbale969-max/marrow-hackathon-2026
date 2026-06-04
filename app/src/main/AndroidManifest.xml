@@ -2,7 +2,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <uses-permission android:name="android.permission.INTERNET" />
+<<<<<<< HEAD
     <!-- Android 13+ notification permission -->
+=======
+>>>>>>> origin/Sri_hackthon
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <application
@@ -12,16 +15,25 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
+<<<<<<< HEAD
         android:theme="@style/Theme.MarrowCompanion"
         android:enableOnBackInvokedCallback="true">
+=======
+        android:theme="@style/Theme.MarrowCompanion">
+>>>>>>> origin/Sri_hackthon
 
         <activity
             android:name=".MainActivity"
             android:exported="true"
             android:windowSoftInputMode="adjustResize"
             android:screenOrientation="portrait"
+<<<<<<< HEAD
             android:configChanges="orientation|screenSize|screenLayout|keyboardHidden|uiMode"
             android:theme="@style/Theme.MarrowCompanion.Splash">
+=======
+            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden"
+            android:theme="@style/Theme.MarrowCompanion">
+>>>>>>> origin/Sri_hackthon
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -30,4 +42,8 @@
 
     </application>
 
+<<<<<<< HEAD
 </manifest>
+=======
+</manifest>
+>>>>>>> origin/Sri_hackthon

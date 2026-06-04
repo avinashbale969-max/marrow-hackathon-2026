@@ -1,5 +1,6 @@
 package com.marrow.companion.ui.screens.profile
 
+<<<<<<< HEAD
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -29,10 +30,20 @@ import com.marrow.companion.ui.screens.subjects.SubjectsViewModel
 private val Teal      = Color(0xFF4DC8D4)
 private val TealLight = Color(0xFFE0F7FA)
 private val Gray      = Color(0xFFF0F0F0)
+=======
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.*
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+
+private val TealHeader = Color(0xFF4DC8D4)
+>>>>>>> origin/Sri_hackthon
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileScreen(
+<<<<<<< HEAD
     onLogout: () -> Unit = {},
     onSubjectClick: (Long, String) -> Unit = { _, _ -> },
     viewModel: SubjectsViewModel = hiltViewModel()
@@ -57,11 +68,22 @@ fun ProfileScreen(
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor    = Teal,
+=======
+    onLogout: () -> Unit = {}
+) {
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Videos") },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor    = TealHeader,
+>>>>>>> origin/Sri_hackthon
                     titleContentColor = Color.White
                 )
             )
         },
         containerColor = Color(0xFFF2F2F2)
+<<<<<<< HEAD
     ) { padding ->
         LazyVerticalGrid(
             columns = GridCells.Fixed(2),
@@ -204,4 +226,7 @@ private fun videoSubjectIcon(name: String): ImageVector = when {
     name.contains("OBG",       ignoreCase = true) -> Icons.Filled.ChildFriendly
     name.contains("Pedi",      ignoreCase = true) -> Icons.Filled.ChildCare
     else                                           -> Icons.Filled.MenuBook
+=======
+    ) { _ -> }
+>>>>>>> origin/Sri_hackthon
 }
