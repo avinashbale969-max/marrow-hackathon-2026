@@ -48,6 +48,7 @@ import com.marrow.companion.data.database.entities.NoteEntity
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
+typealias OnTranslateSelected = (String) -> Unit
 
 private val GreenHL   = Color(0xFF66BB6A)
 private val OrangeHL  = Color(0xFFFFA726)
@@ -67,6 +68,7 @@ fun HighlightableText(
     onEditTag: ((NoteEntity, String) -> Unit)? = null,
     onScrollEnabled: ((Boolean) -> Unit)? = null,
     scrollOffsetPx: (() -> Int)? = null,   // current vertical scroll offset in px
+    onTranslateSelected: OnTranslateSelected? = null,
     modifier: Modifier = Modifier
 ) {
     val clipboardManager = LocalClipboardManager.current
@@ -470,6 +472,15 @@ fun HighlightableText(
                                         delay(80)
                                         val selected = clipboardManager.getText()?.text?.trim() ?: ""
                                         if (selected.isNotBlank()) onTagSelected?.invoke(selected)
+                                        showPicker = false
+                                    }
+                                }
+                                ActionText("🌐 Translate") {
+                                    coroutineScope.launch {
+                                        pendingCopy?.invoke()
+                                        delay(80)
+                                        val selected = clipboardManager.getText()?.text?.trim() ?: ""
+                                        if (selected.isNotBlank()) onTranslateSelected?.invoke(selected)
                                         showPicker = false
                                     }
                                 }
