@@ -41,6 +41,9 @@ private val OrangeHL = Color(0xFFFFA726)
 fun AllNotesScreen(
     onBack: () -> Unit,
     onSubjectClick: (Long) -> Unit = {},
+    onNotesClick: () -> Unit = {},
+    onGreenClick: () -> Unit = {},
+    onOrangeClick: () -> Unit = {},
     viewModel: SubjectsViewModel = hiltViewModel()
 ) {
     val allNotes       by viewModel.getAllNotesWithSubject().collectAsState(initial = emptyList())
@@ -106,11 +109,13 @@ fun AllNotesScreen(
                     horizontalArrangement = Arrangement.spacedBy(28.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    TypePill(Icons.Filled.Edit, Teal, allNotes.size, "Notes")
+                    TypePill(Icons.Filled.Edit, Teal, allNotes.size, "Notes", onClick = onNotesClick)
                     TypePill(Icons.Filled.Highlight, GreenHL,
-                        allHighlights.count { it.color != HighlightColor.ORANGE.name }, "Green")
+                        allHighlights.count { it.color != HighlightColor.ORANGE.name }, "Green",
+                        onClick = onGreenClick)
                     TypePill(Icons.Filled.Highlight, OrangeHL,
-                        allHighlights.count { it.color == HighlightColor.ORANGE.name }, "Orange")
+                        allHighlights.count { it.color == HighlightColor.ORANGE.name }, "Orange",
+                        onClick = onOrangeClick)
                 }
                 HorizontalDivider(color = Color(0xFFEEEEEE))
             }
@@ -156,10 +161,14 @@ fun AllNotesScreen(
 @Composable
 private fun TypePill(
     icon: androidx.compose.ui.graphics.vector.ImageVector,
-    color: Color, count: Int, label: String
+    color: Color, count: Int, label: String,
+    onClick: () -> Unit = {}
 ) {
-    Row(verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        modifier = Modifier.clickable(onClick = onClick)
+    ) {
         Box(Modifier.size(32.dp).clip(CircleShape).background(color.copy(alpha = 0.15f)),
             contentAlignment = Alignment.Center) {
             Icon(icon, null, tint = color, modifier = Modifier.size(16.dp))
@@ -178,6 +187,8 @@ private fun TypePill(
 fun SubjectNotesScreen(
     subjectId: Long,
     onBack: () -> Unit,
+    initialTab: Int = 0,
+    initialColorFilter: String = "",
     viewModel: SubjectsViewModel = hiltViewModel()
 ) {
     val isAll = subjectId == 0L
@@ -191,7 +202,8 @@ fun SubjectNotesScreen(
     val tags       by (if (isAll) viewModel.getAllTagsWithSubject()
         else viewModel.getTagsWithSubject(subjectId)).collectAsState(initial = emptyList())
 
-    var selectedTab  by remember { mutableIntStateOf(0) }
+    var selectedTab  by remember { mutableIntStateOf(initialTab) }
+    var colorFilter  by remember { mutableStateOf(initialColorFilter) }
     var searchQuery  by remember { mutableStateOf("") }
     var showSearch   by remember { mutableStateOf(false) }
 
@@ -334,8 +346,53 @@ fun SubjectNotesScreen(
             }
             HorizontalDivider(color = Color(0xFFEEEEEE))
 
-            val currentItems = if (selectedTab == 0) notes else highlights
-            val emptyMsg = if (selectedTab == 0) "No notes yet" else "No highlights yet"
+            // Color filter chips — shown only in Highlights tab
+            if (selectedTab == 1) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(Color.White)
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    FilterChip(
+                        selected = colorFilter.isEmpty(),
+                        onClick  = { colorFilter = "" },
+                        label    = { Text("All", fontSize = 12.sp) },
+                        colors   = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = Teal.copy(alpha = 0.15f),
+                            selectedLabelColor     = Teal
+                        )
+                    )
+                    FilterChip(
+                        selected = colorFilter == "GREEN",
+                        onClick  = { colorFilter = if (colorFilter == "GREEN") "" else "GREEN" },
+                        label    = { Text("Green", fontSize = 12.sp) },
+                        colors   = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = GreenHL.copy(alpha = 0.15f),
+                            selectedLabelColor     = GreenHL
+                        )
+                    )
+                    FilterChip(
+                        selected = colorFilter == "ORANGE",
+                        onClick  = { colorFilter = if (colorFilter == "ORANGE") "" else "ORANGE" },
+                        label    = { Text("Orange", fontSize = 12.sp) },
+                        colors   = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = OrangeHL.copy(alpha = 0.15f),
+                            selectedLabelColor     = OrangeHL
+                        )
+                    )
+                }
+                HorizontalDivider(color = Color(0xFFEEEEEE))
+            }
+
+            val displayedHighlights = if (colorFilter.isEmpty()) highlights
+                                      else highlights.filter { it.color == colorFilter }
+            val currentItems = if (selectedTab == 0) notes else displayedHighlights
+            val emptyMsg = if (selectedTab == 0) "No notes yet"
+                           else if (colorFilter.isEmpty()) "No highlights yet"
+                           else "No ${colorFilter.lowercase()} highlights yet"
 
             if (currentItems.isEmpty()) {
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -350,7 +407,7 @@ fun SubjectNotesScreen(
                     if (selectedTab == 0) {
                         items(notes, key = { it.id }) { NoteCard(it, showSubject = isAll) }
                     } else {
-                        items(highlights, key = { it.id }) {
+                        items(displayedHighlights, key = { it.id }) {
                             HighlightCard(it, showSubject = isAll,
                                 onDelete = { viewModel.deleteHighlight(it.id) })
                         }

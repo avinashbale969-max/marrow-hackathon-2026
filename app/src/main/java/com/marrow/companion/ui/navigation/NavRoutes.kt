@@ -20,8 +20,9 @@ sealed class NavRoutes(val route: String) {
         fun create(subjectId: Long) = "subject_bookmarks/$subjectId"
     }
     object AllNotes     : NavRoutes("all_notes")
-    object SubjectNotes : NavRoutes("subject_notes/{subjectId}") {
-        fun create(subjectId: Long) = "subject_notes/$subjectId"
+    object SubjectNotes : NavRoutes("subject_notes/{subjectId}?tab={tab}&color={color}") {
+        fun create(subjectId: Long, tab: Int = 0, color: String = "") =
+            "subject_notes/$subjectId?tab=$tab&color=$color"
     }
     object QuestionExplanation : NavRoutes("explanation/{questionId}?selectedOptionId={selectedOptionId}") {
         fun create(questionId: Long, selectedOptionId: Long = -1L) =

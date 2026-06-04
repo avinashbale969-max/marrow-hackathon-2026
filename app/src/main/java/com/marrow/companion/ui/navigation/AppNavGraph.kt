@@ -124,23 +124,33 @@ fun AppNavGraph() {
                     onBack = { navController.popBackStack() },
                     onSubjectClick = { subjectId ->
                         if (subjectId == -1L) {
-                            // "All Subjects" — show combined: navigate with special id
                             navController.navigate(NavRoutes.SubjectNotes.create(0L))
                         } else {
                             navController.navigate(NavRoutes.SubjectNotes.create(subjectId))
                         }
-                    }
+                    },
+                    onNotesClick  = { navController.navigate(NavRoutes.SubjectNotes.create(0L, tab = 0)) },
+                    onGreenClick  = { navController.navigate(NavRoutes.SubjectNotes.create(0L, tab = 1, color = "GREEN")) },
+                    onOrangeClick = { navController.navigate(NavRoutes.SubjectNotes.create(0L, tab = 1, color = "ORANGE")) }
                 )
             }
 
             composable(
                 route = NavRoutes.SubjectNotes.route,
-                arguments = listOf(navArgument("subjectId") { type = NavType.LongType })
+                arguments = listOf(
+                    navArgument("subjectId") { type = NavType.LongType },
+                    navArgument("tab")       { type = NavType.IntType;    defaultValue = 0  },
+                    navArgument("color")     { type = NavType.StringType; defaultValue = "" }
+                )
             ) { backStack ->
                 val subjectId = backStack.arguments?.getLong("subjectId") ?: return@composable
+                val tab       = backStack.arguments?.getInt("tab")        ?: 0
+                val color     = backStack.arguments?.getString("color")   ?: ""
                 SubjectNotesScreen(
-                    subjectId = subjectId,
-                    onBack    = { navController.popBackStack() }
+                    subjectId           = subjectId,
+                    onBack              = { navController.popBackStack() },
+                    initialTab          = tab,
+                    initialColorFilter  = color
                 )
             }
 
