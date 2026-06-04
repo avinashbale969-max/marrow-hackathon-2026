@@ -158,18 +158,19 @@ fun SubjectsScreen(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
+                        .height(IntrinsicSize.Min)
                         .padding(horizontal = 12.dp),
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     QuickCard(
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier.weight(1f).fillMaxHeight(),
                         icon     = Icons.Filled.Bookmark,
                         title    = "Bookmarks",
                         subtitle = "${state.bookmarkedCount} Bookmarks",
                         onClick  = onBookmarksClick
                     )
                     QuickCard(
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier.weight(1f).fillMaxHeight(),
                         icon     = Icons.Filled.Add,
                         title    = "Custom Module",
                         subtitle = "Customised MCQs",
@@ -294,15 +295,10 @@ private fun QuickCard(
         colors = CardDefaults.cardColors(containerColor = Color.White),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
-        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-            // Icon inline with title on same row
-            Row(verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Icon(icon, contentDescription = null, tint = TealHeader, modifier = Modifier.size(20.dp))
-                Text(title, style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.SemiBold, color = Color(0xFF1A1A1A))
-            }
-            Spacer(Modifier.height(2.dp))
+        Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Icon(icon, contentDescription = null, tint = TealHeader, modifier = Modifier.size(26.dp))
+            Text(title, style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.SemiBold, color = Color(0xFF1A1A1A))
             Text(subtitle, style = MaterialTheme.typography.bodySmall, color = Color.Gray)
         }
     }

@@ -224,13 +224,12 @@ private fun HighlightCard(hl: HighlightEntity, onDelete: (() -> Unit)? = null, o
     val bg       = if (isOrange) Color(0xFFFFFBF0) else Color(0xFFF0FBF1)
     val border   = if (isOrange) Color(0xFFFFCC80) else Color(0xFFA5D6A7)
 
-    Card(
-        modifier  = Modifier
+    Box(
+        modifier = Modifier
             .fillMaxWidth()
-            .border(1.dp, border, RoundedCornerShape(12.dp)),
-        shape     = RoundedCornerShape(12.dp),
-        colors    = CardDefaults.cardColors(containerColor = bg),
-        elevation = CardDefaults.cardElevation(2.dp)
+            .border(1.dp, border, RoundedCornerShape(12.dp))
+            .clip(RoundedCornerShape(12.dp))
+            .background(bg)
     ) {
         Column(
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),

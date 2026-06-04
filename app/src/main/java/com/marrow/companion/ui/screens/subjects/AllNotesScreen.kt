@@ -6,6 +6,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -716,23 +717,29 @@ private fun HighlightCard(
 
     val isOrange = hl.color == HighlightColor.ORANGE.name
     val accent   = if (isOrange) OrangeHL else GreenHL
-    val bg       = if (isOrange) Color(0xFFFFF8E1) else Color(0xFFE8F5E9)
+    val bg       = if (isOrange) Color(0xFFFFFBF0) else Color(0xFFF0FBF1)
+    val borderColor = if (isOrange) Color(0xFFFFCC80) else Color(0xFFA5D6A7)
 
-    Card(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(10.dp),
-        colors = CardDefaults.cardColors(containerColor = bg),
-        elevation = CardDefaults.cardElevation(0.dp)) {
-        Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .border(1.dp, borderColor, RoundedCornerShape(12.dp))
+            .clip(RoundedCornerShape(12.dp))
+            .background(bg)
+    ) {
+        Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)) {
 
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp),
                 verticalAlignment = Alignment.Top) {
-                Box(Modifier.width(4.dp).heightIn(min = 16.dp)
-                    .background(accent).clip(RoundedCornerShape(2.dp)))
-                Text("\"${hl.text}\"", fontSize = 14.sp, lineHeight = 21.sp,
-                    color = Color(0xFF333333), modifier = Modifier.weight(1f))
+                Box(Modifier.width(4.dp).heightIn(min = 18.dp)
+                    .clip(RoundedCornerShape(2.dp)).background(accent))
+                Text("\"${hl.text}\"", fontSize = 14.sp, lineHeight = 22.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = Color(0xFF1A1A1A), modifier = Modifier.weight(1f))
                 if (onDelete != null) {
-                    Icon(Icons.Filled.Delete, null, tint = accent.copy(alpha = 0.5f),
-                        modifier = Modifier.size(16.dp).padding(top = 2.dp)
+                    Icon(Icons.Filled.Delete, null, tint = accent.copy(alpha = 0.6f),
+                        modifier = Modifier.size(17.dp).padding(top = 2.dp)
                             .clickable { showConfirm = true })
                 }
             }
@@ -740,7 +747,6 @@ private fun HighlightCard(
             SubjectTopicLabel(subjectName = hl.subjectName, topicName = hl.topicName,
                 color = Color(0xFF888888))
 
-            // MCQ ID pill
             McqIdPill(
                 questionId  = hl.questionId,
                 accentColor = accent,
