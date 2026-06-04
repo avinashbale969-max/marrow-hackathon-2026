@@ -1,6 +1,7 @@
 package com.marrow.companion.ui.navigation
 
 sealed class NavRoutes(val route: String) {
+    object Splash          : NavRoutes("splash")
     object Login           : NavRoutes("login")
     object Dashboard       : NavRoutes("dashboard")
     object HighlightRecall : NavRoutes("highlight_recall")
