@@ -3,6 +3,8 @@ package com.marrow.companion.ui.screens.dashboard
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.marrow.companion.data.database.dao.FlashcardDao
+import com.marrow.companion.data.database.dao.HighlightDao
+import com.marrow.companion.data.database.dao.HighlightForReview
 import com.marrow.companion.data.database.dao.QuestionDao
 import com.marrow.companion.data.database.dao.QuestionWithOptions
 import com.marrow.companion.data.database.dao.StudySessionDao
@@ -29,8 +31,28 @@ class DashboardViewModel @Inject constructor(
     private val flashcardDao: FlashcardDao,
     private val sessionDao: StudySessionDao,
     private val questionDao: QuestionDao,
-    private val seeder: DatabaseSeeder
+    private val seeder: DatabaseSeeder,
+    private val highlightDao: HighlightDao
 ) : ViewModel() {
+
+    val nextHighlightForReview: StateFlow<HighlightForReview?> =
+        highlightDao.getNextForReview()
+            .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    val dueHighlightCount: StateFlow<Int> =
+        highlightDao.getDueCount()
+            .stateIn(viewModelScope, SharingStarted.Eagerly, 0)
+
+    fun rateHighlight(id: Long, daysUntilNext: Int) {
+        viewModelScope.launch {
+            val nextDate = System.currentTimeMillis() + daysUntilNext * 24L * 60 * 60 * 1000
+            highlightDao.setReviewResult(id, nextDate)
+        }
+    }
+
+    fun dismissHighlight(id: Long) {
+        viewModelScope.launch { highlightDao.markReviewed(id) }
+    }
 
     private val _extra = MutableStateFlow(
         Triple<Int, QuestionWithOptions?, Long?>(0, null, null)

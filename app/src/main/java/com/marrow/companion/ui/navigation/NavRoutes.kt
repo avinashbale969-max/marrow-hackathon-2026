@@ -1,8 +1,9 @@
 package com.marrow.companion.ui.navigation
 
 sealed class NavRoutes(val route: String) {
-    object Login     : NavRoutes("login")
-    object Dashboard : NavRoutes("dashboard")
+    object Login           : NavRoutes("login")
+    object Dashboard       : NavRoutes("dashboard")
+    object HighlightRecall : NavRoutes("highlight_recall")
     object Subjects : NavRoutes("subjects")
     object TopicList : NavRoutes("topics/{subjectId}") {
         fun createRoute(subjectId: Long) = "topics/$subjectId"
@@ -20,6 +21,22 @@ sealed class NavRoutes(val route: String) {
         fun create(subjectId: Long) = "subject_bookmarks/$subjectId"
     }
     object AllNotes     : NavRoutes("all_notes")
+    object VideoSubject : NavRoutes("video_subject/{subjectId}/{subjectName}") {
+        fun create(subjectId: Long, subjectName: String) =
+            "video_subject/$subjectId/${android.net.Uri.encode(subjectName)}"
+    }
+    object ImageNotes   : NavRoutes("image_notes/{imageId}/{title}") {
+        fun create(imageId: String, title: String) =
+            "image_notes/${android.net.Uri.encode(imageId)}/${android.net.Uri.encode(title)}"
+    }
+    object VideoLesson  : NavRoutes("video_lesson/{subjectId}/{subjectName}/{lessonTitle}") {
+        fun create(subjectId: Long, subjectName: String, lessonTitle: String) =
+            "video_lesson/$subjectId/${android.net.Uri.encode(subjectName)}/${android.net.Uri.encode(lessonTitle)}"
+    }
+    object VideoNotes   : NavRoutes("video_notes/{subjectId}/{subjectName}/{lessonTitle}") {
+        fun create(subjectId: Long, subjectName: String, lessonTitle: String) =
+            "video_notes/$subjectId/${android.net.Uri.encode(subjectName)}/${android.net.Uri.encode(lessonTitle)}"
+    }
     object SubjectNotes : NavRoutes("subject_notes/{subjectId}") {
         fun create(subjectId: Long) = "subject_notes/$subjectId"
     }

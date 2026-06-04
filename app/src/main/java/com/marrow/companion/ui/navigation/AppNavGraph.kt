@@ -16,7 +16,12 @@ import com.marrow.companion.ui.screens.bookmarks.BookmarksScreen
 import com.marrow.companion.ui.screens.explanation.QuestionExplanationScreen
 import com.marrow.companion.ui.screens.dashboard.DashboardScreen
 import com.marrow.companion.ui.screens.flashcard.FlashcardScreen
+import com.marrow.companion.ui.screens.dashboard.HighlightRecallScreen
+import com.marrow.companion.ui.screens.profile.ImageNotesScreen
 import com.marrow.companion.ui.screens.profile.ProfileScreen
+import com.marrow.companion.ui.screens.profile.VideoLessonScreen
+import com.marrow.companion.ui.screens.profile.VideoNotesScreen
+import com.marrow.companion.ui.screens.profile.VideoSubjectScreen
 import com.marrow.companion.ui.screens.quiz.QuizScreen
 import com.marrow.companion.ui.screens.bookmarks.SubjectBookmarksScreen
 import com.marrow.companion.ui.screens.subjects.AllNotesScreen
@@ -77,6 +82,13 @@ fun AppNavGraph() {
                 )
             }
 
+            composable(NavRoutes.HighlightRecall.route) {
+                HighlightRecallScreen(
+                    onBack  = { navController.popBackStack() },
+                    onRated = { /* stay on screen — next highlight loads automatically */ }
+                )
+            }
+
             composable(NavRoutes.Dashboard.route) {
                 DashboardScreen(
                     onStartQuiz        = { navController.navigate(NavRoutes.Quiz.random()) },
@@ -85,6 +97,7 @@ fun AppNavGraph() {
                     onOpenExplanation  = { qId, selId ->
                         navController.navigate(NavRoutes.QuestionExplanation.create(qId, selId))
                     },
+                    onOpenRecall = { navController.navigate(NavRoutes.HighlightRecall.route) },
                     onLogout = {
                         navController.navigate(NavRoutes.Login.route) {
                             popUpTo(0) { inclusive = true }
@@ -279,7 +292,88 @@ fun AppNavGraph() {
                         navController.navigate(NavRoutes.Login.route) {
                             popUpTo(0) { inclusive = true }
                         }
+                    },
+                    onSubjectClick = { subjectId, subjectName ->
+                        navController.navigate(NavRoutes.VideoSubject.create(subjectId, subjectName))
                     }
+                )
+            }
+
+            composable(
+                route = NavRoutes.VideoSubject.route,
+                arguments = listOf(
+                    navArgument("subjectId")   { type = NavType.LongType },
+                    navArgument("subjectName") { type = NavType.StringType }
+                )
+            ) { backStack ->
+                val subjectId   = backStack.arguments?.getLong("subjectId")     ?: return@composable
+                val subjectName = backStack.arguments?.getString("subjectName") ?: ""
+                VideoSubjectScreen(
+                    subjectId   = subjectId,
+                    subjectName = subjectName,
+                    onBack      = { navController.popBackStack() },
+                    onLessonClick = { lesson ->
+                        navController.navigate(
+                            NavRoutes.VideoLesson.create(subjectId, subjectName, lesson.title))
+                    }
+                )
+            }
+
+            composable(
+                route = NavRoutes.ImageNotes.route,
+                arguments = listOf(
+                    navArgument("imageId") { type = NavType.StringType },
+                    navArgument("title")   { type = NavType.StringType }
+                )
+            ) { backStack ->
+                val imageId = backStack.arguments?.getString("imageId") ?: return@composable
+                val title   = backStack.arguments?.getString("title")   ?: ""
+                ImageNotesScreen(
+                    imageId  = imageId,
+                    imageUrl = "",   // ← put your image URL here
+                    title    = title,
+                    onBack   = { navController.popBackStack() }
+                )
+            }
+
+            composable(
+                route = NavRoutes.VideoLesson.route,
+                arguments = listOf(
+                    navArgument("subjectId")   { type = NavType.LongType },
+                    navArgument("subjectName") { type = NavType.StringType },
+                    navArgument("lessonTitle") { type = NavType.StringType }
+                )
+            ) { backStack ->
+                val subjectId   = backStack.arguments?.getLong("subjectId")     ?: return@composable
+                val subjectName = backStack.arguments?.getString("subjectName") ?: ""
+                val lessonTitle = backStack.arguments?.getString("lessonTitle") ?: ""
+                VideoLessonScreen(
+                    subjectId      = subjectId,
+                    subjectName    = subjectName,
+                    lessonTitle    = lessonTitle,
+                    onBack         = { navController.popBackStack() },
+                    onOpenNotes    = {
+                        val imageId = "${subjectId}_${lessonTitle.hashCode()}"
+                        navController.navigate(NavRoutes.ImageNotes.create(imageId, lessonTitle))
+                    }
+                )
+            }
+
+            composable(
+                route = NavRoutes.VideoNotes.route,
+                arguments = listOf(
+                    navArgument("subjectId")   { type = NavType.LongType },
+                    navArgument("subjectName") { type = NavType.StringType },
+                    navArgument("lessonTitle") { type = NavType.StringType }
+                )
+            ) { backStack ->
+                val subjectId   = backStack.arguments?.getLong("subjectId")     ?: return@composable
+                val subjectName = backStack.arguments?.getString("subjectName") ?: ""
+                val lessonTitle = backStack.arguments?.getString("lessonTitle") ?: ""
+                VideoNotesScreen(
+                    subjectId   = subjectId,
+                    subjectName = "$subjectName — $lessonTitle",
+                    onBack      = { navController.popBackStack() }
                 )
             }
         }

@@ -35,12 +35,15 @@ fun DashboardScreen(
     onStartSubjectQuiz: () -> Unit,
     onOpenFlashcards: () -> Unit,
     onOpenExplanation: (Long, Long) -> Unit = { _, _ -> },
+    onOpenRecall: () -> Unit = {},
     onLogout: () -> Unit = {},
     viewModel: DashboardViewModel = hiltViewModel()
 ) {
-    val state       by viewModel.uiState.collectAsState()
-    val drawerState  = rememberDrawerState(initialValue = DrawerValue.Closed)
-    val scope        = rememberCoroutineScope()
+    val state               by viewModel.uiState.collectAsState()
+    val nextHighlight       by viewModel.nextHighlightForReview.collectAsState()
+    val dueCount            by viewModel.dueHighlightCount.collectAsState()
+    val drawerState          = rememberDrawerState(initialValue = DrawerValue.Closed)
+    val scope                = rememberCoroutineScope()
 
     ModalNavigationDrawer(
         drawerState = drawerState,
@@ -200,6 +203,19 @@ fun DashboardScreen(
                 }
 
                 Spacer(Modifier.height(16.dp))
+            }
+        }
+
+        // ── HIGHLIGHT INBOX (below MCQ) ──────────────────────────────────────
+        if (nextHighlight != null) {
+            item {
+                HighlightInboxCard(
+                    highlight    = nextHighlight!!,
+                    dueCount     = dueCount,
+                    onTestRecall = onOpenRecall,
+                    onGotIt      = { viewModel.dismissHighlight(nextHighlight!!.id) },
+                    modifier     = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                )
             }
         }
     }
@@ -421,5 +437,124 @@ private fun DayOptionCard(
             modifier = Modifier.weight(1f),
             lineHeight = 20.sp
         )
+    }
+}
+
+
+
+// ── Highlight Inbox Card ───────────────────────────────────────────────────────
+
+@Composable
+private fun HighlightInboxCard(
+    highlight: com.marrow.companion.data.database.dao.HighlightForReview,
+    dueCount: Int,
+    onTestRecall: () -> Unit,
+    onGotIt: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val now        = System.currentTimeMillis()
+    val daysAgo    = ((now - highlight.createdAt) / (1000 * 60 * 60 * 24)).toInt().coerceAtLeast(0)
+    val daysLabel  = when (daysAgo) { 0 -> "Today"; 1 -> "1 day ago"; else -> "$daysAgo days ago" }
+    val isReviewed = highlight.lastReviewedAt != null
+    // Full date-time
+    val sdf        = java.text.SimpleDateFormat("dd MMM yyyy, h:mm a", java.util.Locale.getDefault())
+    val dateStr    = sdf.format(java.util.Date(highlight.createdAt))
+    val hlColor    = if (highlight.color == "ORANGE") Color(0xFFFFA726) else Color(0xFF66BB6A)
+
+    Column(modifier = modifier) {
+        // ── Section header — OUTSIDE the card ────────────────────────────────
+        Row(modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Icon(Icons.Filled.Highlight, null, tint = Color(0xFF888888),
+                modifier = Modifier.size(14.dp))
+            Text("HIGHLIGHT INBOX", fontSize = 11.sp, fontWeight = FontWeight.Bold,
+                color = Color(0xFF888888), letterSpacing = 1.sp,
+                modifier = Modifier.weight(1f))
+            // Only show badge when more than 1 due
+            if (dueCount > 1) {
+                Box(Modifier.clip(RoundedCornerShape(20.dp))
+                    .background(TealHeader)
+                    .padding(horizontal = 10.dp, vertical = 3.dp)) {
+                    Text("$dueCount due", fontSize = 11.sp, color = Color.White,
+                        fontWeight = FontWeight.Bold)
+                }
+            }
+        }
+
+        Card(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(16.dp),
+            colors = CardDefaults.cardColors(containerColor = Color.White),
+            elevation = CardDefaults.cardElevation(2.dp)) {
+            Column(modifier = Modifier.padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)) {
+
+                HorizontalDivider(color = Color.Transparent, thickness = 0.dp)
+
+                // ── "Time to revisit" + date ──────────────────────────────────
+                Row(verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    modifier = Modifier.fillMaxWidth()) {
+                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Text("👀 Time to revisit this",
+                            fontWeight = FontWeight.Bold, fontSize = 16.sp,
+                            color = Color(0xFF1A1A1A))
+                        Row(verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                            Icon(Icons.Filled.CalendarToday, null, tint = Color.Gray,
+                                modifier = Modifier.size(12.dp))
+                            Text(dateStr, fontSize = 12.sp, color = Color.Gray)
+                        }
+                    }
+                }
+
+                // ── Metadata snippet (no highlighted text) ────────────────────
+                Box(modifier = Modifier.fillMaxWidth()
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(Color(0xFFF5F5F5))
+                    .padding(12.dp)) {
+                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            modifier = Modifier.fillMaxWidth()) {
+                            // "X days ago · not reviewed" pill
+                            Box(Modifier.clip(RoundedCornerShape(20.dp))
+                                .background(Color(0xFF3D2B0A).copy(alpha = 0.12f))
+                                .padding(horizontal = 10.dp, vertical = 5.dp)) {
+                                Row(verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                                    Icon(Icons.Filled.Schedule, null, tint = Color(0xFFE65100),
+                                        modifier = Modifier.size(12.dp))
+                                    Text("$daysLabel · ${if (isReviewed) "reviewed" else "not reviewed"}",
+                                        fontSize = 12.sp, color = Color(0xFFE65100),
+                                        fontWeight = FontWeight.SemiBold)
+                                }
+                            }
+                            // "1 of N" counter
+                            Text("1 of $dueCount", fontSize = 12.sp, color = Color.Gray)
+                        }
+
+                        // Highlight color dots
+                        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                            Box(Modifier.size(12.dp).clip(CircleShape)
+                                .background(Color(0xFF66BB6A)))
+                            Box(Modifier.size(12.dp).clip(CircleShape)
+                                .background(Color(0xFFFFA726)))
+                            Box(Modifier.size(12.dp).clip(CircleShape)
+                                .background(hlColor))
+                        }
+                    }
+                }
+
+                // ── Smart Revision button ─────────────────────────────────────
+                Button(
+                    onClick  = onTestRecall,
+                    modifier = Modifier.fillMaxWidth().height(46.dp),
+                    shape    = RoundedCornerShape(10.dp),
+                    colors   = ButtonDefaults.buttonColors(containerColor = TealHeader)
+                ) {
+                    Text("Smart Revision →", fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                }
+            }
+        }
     }
 }

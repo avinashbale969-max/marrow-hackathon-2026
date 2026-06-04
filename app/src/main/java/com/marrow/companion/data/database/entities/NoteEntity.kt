@@ -1,7 +1,6 @@
 package com.marrow.companion.data.database.entities
 
 import androidx.room.Entity
-import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
 
@@ -9,12 +8,7 @@ enum class NoteTag { NONE, IMP, DOUBT, SUMMARY, TAG }
 
 @Entity(
     tableName = "notes",
-    foreignKeys = [ForeignKey(
-        entity = QuestionEntity::class,
-        parentColumns = ["id"],
-        childColumns = ["questionId"],
-        onDelete = ForeignKey.CASCADE
-    )],
+    // Foreign key removed — questionId also holds video/image note IDs (negative values)
     indices = [Index("questionId")]
 )
 data class NoteEntity(
@@ -22,6 +16,6 @@ data class NoteEntity(
     val questionId: Long,
     val text: String,
     val tag: String = NoteTag.NONE.name,
-    val attachedQuote: String? = null,   // the highlight text this note is attached to
+    val attachedQuote: String? = null,
     val createdAt: Long = System.currentTimeMillis()
 )
