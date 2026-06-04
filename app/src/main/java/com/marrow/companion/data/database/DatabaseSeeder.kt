@@ -15,28 +15,50 @@ class DatabaseSeeder @Inject constructor(
         if (questionDao.getCount() > 0) return
 
         val subjects = listOf(
-            SubjectEntity(id = 1, name = "Medicine",     colorHex = "#1565C0", totalQuestions = 10),
-            SubjectEntity(id = 2, name = "Surgery",      colorHex = "#2E7D32", totalQuestions = 10),
-            SubjectEntity(id = 3, name = "OBG",          colorHex = "#6A1B9A", totalQuestions = 6),
-            SubjectEntity(id = 4, name = "Pediatrics",   colorHex = "#E65100", totalQuestions = 6),
-            SubjectEntity(id = 5, name = "Pharmacology", colorHex = "#00695C", totalQuestions = 6),
-            SubjectEntity(id = 6, name = "Pathology",    colorHex = "#4527A0", totalQuestions = 6),
-            SubjectEntity(id = 7, name = "Anatomy",      colorHex = "#37474F", totalQuestions = 6),
-            SubjectEntity(id = 8, name = "Physiology",   colorHex = "#558B2F", totalQuestions = 6),
+            SubjectEntity(id = 1,  name = "Medicine",          colorHex = "#1565C0", totalQuestions = 10),
+            SubjectEntity(id = 2,  name = "Surgery",           colorHex = "#2E7D32", totalQuestions = 10),
+            SubjectEntity(id = 3,  name = "OBG",               colorHex = "#6A1B9A", totalQuestions = 6),
+            SubjectEntity(id = 4,  name = "Pediatrics",        colorHex = "#E65100", totalQuestions = 6),
+            SubjectEntity(id = 5,  name = "Pharmacology",      colorHex = "#00695C", totalQuestions = 6),
+            SubjectEntity(id = 6,  name = "Pathology",         colorHex = "#4527A0", totalQuestions = 6),
+            SubjectEntity(id = 7,  name = "Anatomy",           colorHex = "#37474F", totalQuestions = 6),
+            SubjectEntity(id = 8,  name = "Physiology",        colorHex = "#558B2F", totalQuestions = 6),
+            SubjectEntity(id = 9,  name = "Biochemistry",      colorHex = "#F57F17", totalQuestions = 3),
+            SubjectEntity(id = 10, name = "Microbiology",      colorHex = "#00838F", totalQuestions = 3),
+            SubjectEntity(id = 11, name = "Forensic Medicine", colorHex = "#546E7A", totalQuestions = 3),
+            SubjectEntity(id = 12, name = "Community Medicine",colorHex = "#388E3C", totalQuestions = 3),
+            SubjectEntity(id = 13, name = "Ophthalmology",     colorHex = "#0288D1", totalQuestions = 3),
+            SubjectEntity(id = 14, name = "ENT",               colorHex = "#7B1FA2", totalQuestions = 3),
+            SubjectEntity(id = 15, name = "Orthopedics",       colorHex = "#D84315", totalQuestions = 3),
+            SubjectEntity(id = 16, name = "Psychiatry",        colorHex = "#C2185B", totalQuestions = 3),
+            SubjectEntity(id = 17, name = "Dermatology",       colorHex = "#689F38", totalQuestions = 3),
+            SubjectEntity(id = 18, name = "Radiology",         colorHex = "#01579B", totalQuestions = 3),
+            SubjectEntity(id = 19, name = "Anesthesia",        colorHex = "#4A148C", totalQuestions = 3),
         )
         subjectDao.insertAll(subjects)
 
         val topics = listOf(
-            TopicEntity(id = 1,  subjectId = 1, name = "Infectious Diseases",     questionCount = 5),
-            TopicEntity(id = 2,  subjectId = 1, name = "Cardiology",              questionCount = 5),
-            TopicEntity(id = 3,  subjectId = 2, name = "Abdomen",                 questionCount = 5),
-            TopicEntity(id = 4,  subjectId = 2, name = "Trauma & Burns",          questionCount = 5),
-            TopicEntity(id = 5,  subjectId = 3, name = "Obstetrics",              questionCount = 6),
-            TopicEntity(id = 6,  subjectId = 4, name = "Growth & Development",    questionCount = 6),
-            TopicEntity(id = 7,  subjectId = 5, name = "Antimicrobials",          questionCount = 6),
-            TopicEntity(id = 8,  subjectId = 6, name = "Neoplasia",               questionCount = 6),
-            TopicEntity(id = 9,  subjectId = 7, name = "Upper Limb",              questionCount = 6),
-            TopicEntity(id = 10, subjectId = 8, name = "Respiratory Physiology",  questionCount = 6),
+            TopicEntity(id = 1,  subjectId = 1,  name = "Infectious Diseases",     questionCount = 5),
+            TopicEntity(id = 2,  subjectId = 1,  name = "Cardiology",              questionCount = 5),
+            TopicEntity(id = 3,  subjectId = 2,  name = "Abdomen",                 questionCount = 5),
+            TopicEntity(id = 4,  subjectId = 2,  name = "Trauma & Burns",          questionCount = 5),
+            TopicEntity(id = 5,  subjectId = 3,  name = "Obstetrics",              questionCount = 6),
+            TopicEntity(id = 6,  subjectId = 4,  name = "Growth & Development",    questionCount = 6),
+            TopicEntity(id = 7,  subjectId = 5,  name = "Antimicrobials",          questionCount = 6),
+            TopicEntity(id = 8,  subjectId = 6,  name = "Neoplasia",               questionCount = 6),
+            TopicEntity(id = 9,  subjectId = 7,  name = "Upper Limb",              questionCount = 6),
+            TopicEntity(id = 10, subjectId = 8,  name = "Respiratory Physiology",  questionCount = 6),
+            TopicEntity(id = 11, subjectId = 9,  name = "Metabolic Disorders",     questionCount = 3),
+            TopicEntity(id = 12, subjectId = 10, name = "Bacteriology",            questionCount = 3),
+            TopicEntity(id = 13, subjectId = 11, name = "Thanatology",             questionCount = 3),
+            TopicEntity(id = 14, subjectId = 12, name = "Epidemiology",            questionCount = 3),
+            TopicEntity(id = 15, subjectId = 13, name = "Anterior Segment",        questionCount = 3),
+            TopicEntity(id = 16, subjectId = 14, name = "Ear Disorders",           questionCount = 3),
+            TopicEntity(id = 17, subjectId = 15, name = "Fractures",               questionCount = 3),
+            TopicEntity(id = 18, subjectId = 16, name = "Mood Disorders",          questionCount = 3),
+            TopicEntity(id = 19, subjectId = 17, name = "Skin Infections",         questionCount = 3),
+            TopicEntity(id = 20, subjectId = 18, name = "Imaging Techniques",      questionCount = 3),
+            TopicEntity(id = 21, subjectId = 19, name = "General Anaesthesia",     questionCount = 3),
         )
         topicDao.insertAll(topics)
 
@@ -1824,6 +1846,919 @@ SHUNT vs DEAD SPACE:
 Dead space: V/Q = ∞ (ventilated, not perfused) → air wasted
 Shunt: V/Q = 0 (perfused, not ventilated) → blood not oxygenated, does NOT correct with O2""",
             options = listOf(opt("Ventilated but not perfused lung regions", true), opt("Perfused but not ventilated regions", false), opt("Collapsed alveoli", false), opt("Alveoli with fibrosis", false))
+        ),
+
+        // ── BIOCHEMISTRY: Metabolic Disorders ─────────────────────────────────
+        q(subjectId = 9, topicId = 11,
+            text = "Phenylketonuria (PKU) is caused by deficiency of:",
+            explanation = """Phenylketonuria (PKU) is an autosomal recessive inborn error of amino acid metabolism.
+
+ENZYME DEFECT: Phenylalanine hydroxylase (PAH) — converts phenylalanine → tyrosine in the liver. Deficiency leads to accumulation of phenylalanine and its toxic metabolites (phenylpyruvate, phenylacetate, phenyllactate).
+
+CLINICAL FEATURES (untreated):
+• Intellectual disability (IQ <50)
+• Mousy/musty odour of urine (phenylacetic acid)
+• Fair skin, blue eyes, blonde hair (reduced melanin — tyrosine needed for melanin)
+• Seizures (EEG abnormalities)
+• Eczema
+
+SCREENING: Guthrie test (bacterial inhibition assay) — heel-prick blood at 48–72 hours of life. Serum phenylalanine >20 mg/dL is diagnostic.
+
+TREATMENT: Phenylalanine-restricted diet (low-phenylalanine formula) started within first 3 weeks of life. Tyrosine becomes an essential amino acid (must be supplemented). BH4 (tetrahydrobiopterin) — cofactor for PAH; sapropterin (BH4 analogue) helps ~25–50% of patients.
+
+MNEMONIC: "PKU = Pale kids (fair skin), Keen smell (mousy urine), Unkempt brain (intellectual disability)".""",
+            options = listOf(opt("Phenylalanine hydroxylase", true), opt("Homogentisic acid oxidase", false), opt("Branched-chain keto acid dehydrogenase", false), opt("Tyrosinase", false))
+        ),
+        q(subjectId = 9, topicId = 11,
+            text = "HbA1c reflects average blood glucose over the preceding:",
+            explanation = """HbA1c (Glycated haemoglobin) is formed by non-enzymatic glycation of the N-terminal valine of the β-chain of haemoglobin by glucose. It is a stable ketoamine (Amadori product).
+
+TIME PERIOD: Reflects mean blood glucose over the preceding 8–12 weeks (2–3 months) — the average lifespan of an RBC is ~120 days (about 3 months), but HbA1c reflects mainly the last 8–12 weeks.
+
+DIAGNOSTIC CRITERIA (ADA):
+• ≥6.5% = Diabetes mellitus (confirm with repeat test if asymptomatic)
+• 5.7–6.4% = Pre-diabetes
+• <5.7% = Normal
+
+TREATMENT TARGETS:
+• General: HbA1c <7% (ADA), <6.5% (some guidelines)
+• Elderly/frail: <8% (to avoid hypoglycaemia)
+• Pregnancy (GDM): <6%
+
+FALSE HIGH HbA1c: Iron deficiency anaemia (longer RBC survival), lead poisoning, alcohol.
+FALSE LOW HbA1c: Haemolytic anaemia (shorter RBC survival), sickle cell disease, recent blood transfusion, EPO therapy.
+
+MNEMONIC: "HbA1c = 3-month memory of sugar" — like a 3-month report card for diabetes control.""",
+            options = listOf(opt("8–12 weeks", true), opt("2–4 weeks", false), opt("6 months", false), opt("1 year", false))
+        ),
+        q(subjectId = 9, topicId = 11,
+            text = "The most sensitive cardiac biomarker after myocardial infarction is:",
+            explanation = """CARDIAC BIOMARKERS IN MI — RISE AND FALL:
+
+Marker          | Rise       | Peak        | Return to normal
+Troponin I/T    | 3–6 hrs ★  | 12–24 hrs   | 7–10 days (gold standard)
+CK-MB           | 3–6 hrs    | 12–24 hrs   | 2–3 days
+Myoglobin       | 1–3 hrs    | 6–9 hrs     | 24–36 hrs (earliest, not cardiac-specific)
+LDH             | 12–24 hrs  | 3–4 days    | 8–14 days (late marker)
+
+TROPONIN (I and T):
+• Most sensitive AND specific for myocardial injury
+• Rises at 3–6 hours; remains elevated for 7–10 days (useful for late presenters)
+• High-sensitivity troponin (hs-cTn): Can detect MI within 1–2 hours
+• Used in NSTEMI and STEMI diagnosis
+
+CK-MB:
+• Useful for diagnosing re-infarction (short half-life, falls to normal in 2–3 days)
+• If troponin remains elevated but CK-MB rises again = re-infarction
+
+MYOGLOBIN:
+• Earliest to rise (1–3 hours) but NOT cardiac-specific (also in skeletal muscle)
+• Negative myoglobin = good rule-out tool in early presentation
+
+LDH ISOFORMS: LDH1 > LDH2 = "flipped pattern" in MI (normally LDH2 > LDH1).""",
+            options = listOf(opt("Troponin I", true), opt("CK-MB", false), opt("Myoglobin", false), opt("LDH", false))
+        ),
+
+        // ── MICROBIOLOGY: Bacteriology ─────────────────────────────────────────
+        q(subjectId = 10, topicId = 12,
+            text = "The Gram stain uses which decolorizer?",
+            explanation = """GRAM STAINING — STEPS (in order):
+
+1. CRYSTAL VIOLET (primary stain) — applied to heat-fixed smear; stains ALL bacteria purple
+2. GRAM'S IODINE (mordant) — forms crystal violet-iodine complex (CVI) within cell wall; fixed in both Gram+ve and –ve
+3. ACETONE-ALCOHOL (decolorizer) ★ — key step: washes out CVI from Gram–ve (thin PG, outer membrane disrupted); Gram+ve retain CVI (thick PG locks complex)
+4. SAFRANIN/NEUTRAL RED (counterstain) — stains decolorized Gram–ve bacteria pink/red
+
+RESULT:
+• Gram-positive (thick peptidoglycan): Purple/violet
+• Gram-negative (thin peptidoglycan + outer membrane): Pink/red
+
+WHY GRAM+VE RETAIN STAIN: Thick peptidoglycan (20–80 nm) dehydrates with alcohol → pores close → CVI complex trapped.
+
+WHY GRAM–VE LOSE STAIN: Thin peptidoglycan (2–7 nm) + lipopolysaccharide-rich outer membrane (dissolved by alcohol/acetone) → CVI washes out.
+
+CLINICAL RELEVANCE: Gram stain guides empirical antibiotic therapy within minutes of specimen collection (e.g., CSF, sputum, wound swab).""",
+            options = listOf(opt("Acetone-alcohol", true), opt("Dilute sulphuric acid", false), opt("Hydrochloric acid-alcohol", false), opt("Carbol fuchsin", false))
+        ),
+        q(subjectId = 10, topicId = 12,
+            text = "Ziehl-Neelsen stain is used to identify:",
+            explanation = """ZIEHL-NEELSEN (ZN) STAIN — ACID-FAST STAINING:
+
+PRINCIPLE: Mycobacteria have a waxy cell wall rich in mycolic acids (long-chain fatty acids) that resist decolorisation by acid-alcohol (hence "acid-fast").
+
+STEPS:
+1. Carbol fuchsin (primary stain) + heat (Ziehl-Neelsen) or without heat (Kinyoun cold method) — penetrates waxy wall
+2. Acid-alcohol (3% HCl in 95% alcohol) — decolorizer: removes stain from non-acid-fast organisms
+3. Methylene blue / Malachite green (counterstain) — stains non-acid-fast bacteria blue/green
+
+RESULT:
+• Acid-fast bacilli (AFB): Bright red, beaded rods on blue/green background
+• Non-acid-fast: Blue/green
+
+ACID-FAST ORGANISMS (MNEMONIC — "MANN"):
+• Mycobacterium tuberculosis ★ (and other mycobacteria)
+• Actinomyces israelii — weakly acid-fast
+• Nocardia — weakly acid-fast
+• Cryptosporidium oocysts (modified ZN)
+
+CLINICAL USE: Diagnosis of TB (sputum smear); WHO requires 2 positive smears for diagnosis in resource-limited settings. Sensitivity: ~60% if 3 smears taken.""",
+            options = listOf(opt("Acid-fast bacilli (Mycobacteria)", true), opt("Gram-negative cocci", false), opt("Anaerobic organisms", false), opt("Spirochaetes", false))
+        ),
+        q(subjectId = 10, topicId = 12,
+            text = "The causative organism of gas gangrene is:",
+            explanation = """GAS GANGRENE (Clostridial myonecrosis):
+
+CAUSATIVE ORGANISM: Clostridium perfringens (Type A) — most common (80–90% of cases). Other species: C. novyi, C. septicum, C. histolyticum.
+
+CHARACTERISTICS OF CLOSTRIDIUM:
+• Gram-positive, spore-forming, anaerobic rods
+• Spores: Central/subterminal (C. perfringens has no spores on Gram stain — unique!)
+• Exotoxins: Alpha toxin (lecithinase/phospholipase C) — most important; causes RBC lysis, platelet destruction, increased capillary permeability
+
+PATHOGENESIS:
+• Contaminated wound (soil, faeces) → anaerobic environment → spore germination → alpha toxin production → muscle cell lysis → CO2 + H2 gas → crepitus
+
+CLINICAL FEATURES:
+• Severe pain at wound site (disproportionate to appearance)
+• Skin: Bronze/brownish discolouration → bullae → necrosis
+• Crepitus (gas in tissues — palpable or on X-ray)
+• Systemic toxaemia: Fever, tachycardia, hypotension, shock (can be fatal in 24–48 hrs)
+
+TREATMENT:
+• Surgical: Wide debridement / amputation (mainstay)
+• Antibiotics: High-dose IV Penicillin G + Metronidazole or Clindamycin
+• Hyperbaric oxygen (adjunct — inhibits anaerobes)
+
+MNEMONIC: "Clostridium = Gas, Gangrene, Gram+ve, anaerobic rod" """,
+            options = listOf(opt("Clostridium perfringens", true), opt("Staphylococcus aureus", false), opt("Bacteroides fragilis", false), opt("Pseudomonas aeruginosa", false))
+        ),
+
+        // ── FORENSIC MEDICINE: Thanatology ────────────────────────────────────
+        q(subjectId = 11, topicId = 13,
+            text = "Rigor mortis is first seen in which muscles?",
+            explanation = """RIGOR MORTIS — POST-MORTEM RIGIDITY:
+
+DEFINITION: Stiffening of muscles after death due to depletion of ATP → permanent actin-myosin cross-bridge formation (cannot relax without ATP).
+
+ONSET AND PROGRESSION:
+• Starts: 2–6 hours after death (typically 3–4 hours)
+• Appears first in: Involuntary muscles (heart, diaphragm) simultaneously with all muscles, but NOTICED FIRST in: Small muscles of face and jaw (masseter, eyelids) ★
+• Progression: Face/neck → trunk → upper limbs → lower limbs (Nysten's Law — cephalocaudal direction)
+• Maximum stiffness: 12–24 hours
+• Passes off: 24–48 hours (proteolytic decomposition of muscle proteins)
+
+NYSTEN'S LAW: Rigor mortis appears and disappears in the same order — from head to feet.
+
+FACTORS AFFECTING ONSET:
+Earlier onset: High temperature, muscular person, violent death (exercising muscles), children
+Later onset: Cold temperature, elderly, debilitated persons
+
+CADAVERIC SPASM (instantaneous rigor):
+• No primary relaxation; occurs instantly at moment of death
+• Due to extreme nervous exhaustion (e.g., drowning while clutching vegetation, soldier dying with weapon in hand)
+• MEDICOLEGAL importance: Indicates cause/manner of death (suicide vs homicide)
+
+DECOMPOSITION SEQUENCE: Primary relaxation → rigor mortis → secondary relaxation (decomposition)""",
+            options = listOf(opt("Small muscles of face and jaw", true), opt("Lower limb muscles", false), opt("Hand muscles", false), opt("Abdominal muscles", false))
+        ),
+        q(subjectId = 11, topicId = 13,
+            text = "Diatom test is performed in cases of suspected:",
+            explanation = """DIATOM TEST (Plankton test):
+
+PURPOSE: Used in medicolegal investigation of suspected DROWNING to confirm antemortem (vital) drowning.
+
+PRINCIPLE: Diatoms are microscopic unicellular algae with silica cell walls (frustules), found in all natural water bodies. If a person is alive when submerged (antemortem drowning), diatoms enter the lungs, are absorbed into the bloodstream, and transported to distant organs: liver, kidney, bone marrow, brain.
+
+SIGNIFICANCE:
+• Diatoms found in BONE MARROW or DISTANT ORGANS = antemortem drowning (person was alive when submerged, heart was beating to circulate diatoms)
+• Diatoms in LUNGS ONLY = postmortem submersion (body placed in water after death — passive entry, no circulation)
+• No diatoms = drowning in distilled/purified water, or body retrieved from sea (saltwater diatoms)
+
+PROCEDURE: Acid digestion of tissues (strong acid destroys organic matter, silica frustules remain) → centrifuge → examine under microscope
+
+BEST SPECIMEN: Bone marrow (femur) — most protected from contamination; remains positive even after decomposition.
+
+MEDICOLEGAL IMPORTANCE: Distinguishes antemortem drowning from postmortem submersion (concealing homicide as accidental drowning).""",
+            options = listOf(opt("Drowning", true), opt("Electrocution", false), opt("Hanging", false), opt("Poisoning", false))
+        ),
+        q(subjectId = 11, topicId = 13,
+            text = "Tardieu spots are found in cases of death due to:",
+            explanation = """TARDIEU SPOTS:
+
+DEFINITION: Subpleural (and subpericardial) petechial haemorrhages seen on the surface of the lungs (and heart) in asphyxial deaths. Named after Auguste Ambroise Tardieu (French forensic pathologist, 1818–1879).
+
+MECHANISM: Asphyxia → raised intrathoracic pressure during struggle to breathe → venous obstruction → increased capillary pressure → rupture of small pulmonary capillaries → petechiae.
+
+FOUND IN:
+• HANGING ★ (most classic)
+• Strangulation (manual and ligature)
+• Suffocation
+• Traumatic asphyxia
+
+APPEARANCE:
+• Multiple small (pin-point to 3 mm) dark red/purplish spots
+• Located under pleura (lung surface) and pericardium (heart surface)
+• Can also appear on conjunctivae (subconjunctival petechiae), skin of face/neck
+
+SIGNIFICANCE: Tardieu spots = SIGN OF ASPHYXIA — indicates antemortem struggle for respiration.
+
+DIFFERENCE FROM PETECHIAE IN OTHER CONDITIONS:
+• Tardieu spots: Located subpleurally/subpericardially, associated with asphyxial deaths
+• Wischnewski spots: Gastric haemorrhages in hypothermia
+• Paltauf's haemorrhages: Subpleural pale haemorrhages in drowning""",
+            options = listOf(opt("Asphyxia (hanging/strangulation)", true), opt("Drowning", false), opt("Poisoning", false), opt("Burns", false))
+        ),
+
+        // ── COMMUNITY MEDICINE: Epidemiology ──────────────────────────────────
+        q(subjectId = 12, topicId = 14,
+            text = "Sensitivity of a diagnostic test is defined as:",
+            explanation = """SENSITIVITY AND SPECIFICITY — CORE CONCEPTS:
+
+2×2 TABLE:
+                    Disease +    Disease –
+Test Positive:        TP           FP
+Test Negative:        FN           TN
+
+SENSITIVITY = TP / (TP + FN) ★
+• Ability to correctly identify TRUE POSITIVES (diseased persons)
+• = "Positivity in disease" (PID)
+• High sensitivity → few false negatives → good SCREENING test
+• If sensitivity = 100%: NO false negatives (misses no one with disease)
+
+SPECIFICITY = TN / (TN + FP)
+• Ability to correctly identify TRUE NEGATIVES (non-diseased persons)
+• = "Negativity in health" (NIH)
+• High specificity → few false positives → good CONFIRMATORY test
+
+PPV = TP / (TP + FP) — depends on prevalence (↑ prevalence → ↑ PPV)
+NPV = TN / (TN + FN) — depends on prevalence (↑ prevalence → ↓ NPV)
+
+MNEMONIC:
+• "SNOUT" = Sensitive test, Negative result rules OUT disease
+• "SPIN" = Specific test, Positive result rules IN disease
+
+IDEAL TEST SEQUENCE:
+1. Sensitive test first (screening) — cast wide net, avoid missing cases
+2. Specific test second (confirmation) — confirm true positives""",
+            options = listOf(opt("True positive rate (TP/TP+FN)", true), opt("True negative rate (TN/TN+FP)", false), opt("Proportion of positives that are true", false), opt("Proportion of negatives that are true", false))
+        ),
+        q(subjectId = 12, topicId = 14,
+            text = "Basic Reproduction Number (R0) of >1 indicates:",
+            explanation = """BASIC REPRODUCTION NUMBER (R0 — "R-naught"):
+
+DEFINITION: Average number of secondary infections produced by ONE infectious person in a COMPLETELY SUSCEPTIBLE population, in the absence of interventions.
+
+INTERPRETATION:
+• R0 > 1: Epidemic will SPREAD (each case infects >1 person → exponential growth) ★
+• R0 = 1: Endemic state (disease persists, neither grows nor declines)
+• R0 < 1: Epidemic will DIE OUT (each case infects <1 person)
+
+EXAMPLES OF R0 VALUES:
+Disease         | R0
+Measles         | 12–18 (highest known)
+COVID-19 (orig) | 2–3
+COVID-19 (Delta)| 5–8
+Influenza       | 2–3
+Polio           | 5–7
+Smallpox        | 5–7
+Ebola           | 1.5–2.5
+
+HERD IMMUNITY THRESHOLD (HIT):
+HIT = 1 − (1/R0)
+Example: Measles R0=15 → HIT = 1 − 1/15 = 93.3% (need 93% immune for herd protection)
+
+EFFECTIVE REPRODUCTION NUMBER (Re/Rt):
+• Accounts for partial immunity and interventions
+• Re = R0 × proportion susceptible
+• Goal of vaccination/lockdowns: Reduce Re below 1""",
+            options = listOf(opt("Epidemic will spread in the population", true), opt("Epidemic will die out", false), opt("Disease is endemic", false), opt("Herd immunity has been achieved", false))
+        ),
+        q(subjectId = 12, topicId = 14,
+            text = "In a cohort study, the measure of association calculated is:",
+            explanation = """STUDY DESIGNS AND THEIR MEASURES OF ASSOCIATION:
+
+COHORT STUDY:
+• Design: Follow exposed vs unexposed groups forward in time → observe who develops disease
+• Measure: RELATIVE RISK (RR) = Risk Ratio ★
+• RR = (Incidence in exposed) / (Incidence in unexposed)
+• RR = 1: No association; RR > 1: Risk factor; RR < 1: Protective factor
+• Example: Follow smokers vs non-smokers for 20 years → calculate RR for lung cancer
+
+CASE-CONTROL STUDY:
+• Design: Cases (with disease) vs controls (without disease) → look back at exposure
+• Measure: ODDS RATIO (OR)
+• OR approximates RR when disease is RARE (<10%)
+• Used for rare diseases, quick and cheap
+
+RANDOMISED CONTROLLED TRIAL (RCT):
+• Experimental study; gold standard for causality
+• Measure: RR, ARR (Absolute Risk Reduction), NNT (Number Needed to Treat)
+
+CROSS-SECTIONAL STUDY:
+• Point-in-time snapshot
+• Measure: Prevalence; Prevalence Ratio; cannot determine causality (no time sequence)
+
+MNEMONIC: "Cohort = Relative Risk; Case-Control = Odds Ratio"
+"Can't Calculate RR from Case-Control (use OR instead)".""",
+            options = listOf(opt("Relative Risk (Risk Ratio)", true), opt("Odds Ratio", false), opt("Attributable Risk only", false), opt("Prevalence Ratio", false))
+        ),
+
+        // ── OPHTHALMOLOGY: Anterior Segment ───────────────────────────────────
+        q(subjectId = 13, topicId = 15,
+            text = "The commonest cause of preventable blindness worldwide is:",
+            explanation = """GLOBAL CAUSES OF BLINDNESS (WHO Data):
+
+LEADING CAUSES OF BLINDNESS (GLOBALLY):
+1. Cataract ★ — 51% of world blindness; MOST COMMON and MOST PREVENTABLE cause
+2. Glaucoma — 8% (irreversible)
+3. Age-related macular degeneration — 5%
+4. Corneal opacity — 4%
+5. Diabetic retinopathy — 1%
+6. Trachoma — 3% (most common INFECTIOUS cause of preventable blindness)
+
+CATARACT:
+• Opacity of the crystalline lens
+• Causes: Ageing (senile — most common), congenital (TORCH infections, galactosaemia), metabolic (diabetes), trauma, radiation, drugs (steroids → posterior subcapsular)
+• Treatment: Surgical (Phacoemulsification + IOL implantation)
+
+IN INDIA SPECIFICALLY:
+• Cataract remains the leading cause of blindness
+• National Programme for Control of Blindness (NPCB) targets cataract
+
+TRACHOMA: Chlamydia trachomatis (serotypes A, B, Ba, C) → repeated infections → conjunctival scarring → entropion/trichiasis → corneal ulceration → blindness. SAFE strategy (Surgery, Antibiotics, Facial cleanliness, Environmental improvement).
+
+MNEMONIC: "Cataract Causes Cloudy sight Chronically" — commonest preventable cause globally.""",
+            options = listOf(opt("Cataract", true), opt("Glaucoma", false), opt("Trachoma", false), opt("Diabetic retinopathy", false))
+        ),
+        q(subjectId = 13, topicId = 15,
+            text = "Increased cup-to-disc ratio is a feature of:",
+            explanation = """CUP-TO-DISC RATIO (CDR):
+
+NORMAL CDR: ≤0.5 (optic cup ≤ half the diameter of the optic disc). A CDR of 0.3–0.4 is typical in healthy eyes.
+
+INCREASED CDR (>0.6, especially asymmetric):
+• GLAUCOMA ★ — most important cause of raised CDR
+• Pathophysiology: Raised intraocular pressure (IOP) → compression of optic nerve fibres at lamina cribrosa → progressive loss of nerve fibres → enlargement of optic cup
+• Clinical: CDR >0.7, asymmetric CDR (difference >0.2 between eyes), notching of the rim (inferior > superior > nasal > temporal — ISNT rule violated)
+
+TYPES OF GLAUCOMA:
+Primary open-angle glaucoma (POAG): Most common; painless; gradual peripheral visual field loss; IOP usually >21 mmHg
+Primary angle-closure glaucoma (PACG): Acute painful red eye, haloes, nausea, fixed mid-dilated pupil, shallow anterior chamber; commoner in Asians and hypermetropes
+
+MEASUREMENT: Slit-lamp biomicroscopy, Optical coherence tomography (OCT) for RNFL thickness.
+
+TREATMENT: Reduce IOP — Prostaglandin analogues (latanoprost — first-line), beta-blockers (timolol), carbonic anhydrase inhibitors (dorzolamide), miotics (pilocarpine). Laser trabeculoplasty. Surgery: Trabeculectomy.""",
+            options = listOf(opt("Glaucoma", true), opt("Papilloedema", false), opt("Retinal detachment", false), opt("Cataract", false))
+        ),
+        q(subjectId = 13, topicId = 15,
+            text = "Leukocoria (white pupillary reflex) in a child is most likely due to:",
+            explanation = """LEUKOCORIA — WHITE PUPILLARY REFLEX:
+
+DEFINITION: Abnormal white or yellowish light reflection from the pupil (instead of normal red reflex). A RED FLAG sign in children requiring urgent evaluation.
+
+COMMONEST CAUSE IN CHILDREN: RETINOBLASTOMA ★ — most common intraocular malignancy of childhood.
+
+CAUSES OF LEUKOCORIA (MNEMONIC — "CLAMPS"):
+• Cataract (congenital) — most common cause overall
+• Leukocoria from Retinoblastoma ★ — most common MALIGNANT cause, most important
+• Astrocytic hamartoma (tuberous sclerosis)
+• Myelinated nerve fibres
+• Persistent fetal vasculature (PFV)
+• Severe toxocariasis (Toxocara canis — endophthalmitis)
+
+RETINOBLASTOMA:
+• Gene: RB1 tumour suppressor gene (chromosome 13q14) — "Two-hit hypothesis" (Knudson)
+• Hereditary (40%): Bilateral, earlier onset, AD inheritance, germline mutation
+• Sporadic (60%): Unilateral, later onset, somatic mutation
+• Most common presentation: Leukocoria (60%), strabismus (20%)
+• Treatment: Depends on extent — chemotherapy, laser, cryotherapy, enucleation for advanced disease
+
+IMPORTANT: Any child with absent red reflex or leukocoria → URGENT ophthalmology referral.""",
+            options = listOf(opt("Retinoblastoma", true), opt("Glaucoma", false), opt("Conjunctivitis", false), opt("Optic neuritis", false))
+        ),
+
+        // ── ENT: Ear Disorders ─────────────────────────────────────────────────
+        q(subjectId = 14, topicId = 16,
+            text = "Cholesteatoma is best described as:",
+            explanation = """CHOLESTEATOMA:
+
+DEFINITION: A destructive, expanding growth consisting of keratinising stratified squamous epithelium within the middle ear cleft. Despite the name, it is NOT a tumour and does NOT contain cholesterol.
+
+TYPES:
+• Congenital: Behind intact tympanic membrane; no history of ear discharge
+• Acquired (most common):
+  - Primary acquired: Invagination of Shrapnell's membrane (pars flaccida) — most common type
+  - Secondary acquired: Entry of squamous epithelium through a perforation (unsafe CSOM)
+
+PATHOLOGY: Keratin accumulation → expansion → enzymatic bone erosion (collagenases) → destruction of ossicles, mastoid, tegmen, facial canal, semicircular canals.
+
+CLINICAL FEATURES:
+• Foul-smelling, scanty, purulent ear discharge (attic discharge) ★
+• Hearing loss (conductive → mixed as sensorineural component develops)
+• Pars flaccida (attic) retraction pocket with keratin debris
+• Granulation tissue
+
+COMPLICATIONS (SERIOUS):
+Extracranial: Facial nerve palsy, labyrinthitis, mastoid abscess
+Intracranial: Meningitis, brain abscess, lateral sinus thrombosis, otitic hydrocephalus
+
+DIAGNOSIS: CT temporal bone (gold standard for extent of disease)
+TREATMENT: Surgical — Tympanomastoidectomy (complete removal of cholesteatoma; canal wall down / up)""",
+            options = listOf(opt("Keratinising squamous epithelium within middle ear", true), opt("A benign cholesterol cyst", false), opt("Malignant tumour of the ear", false), opt("Chronic suppurative otitis media with no complications", false))
+        ),
+        q(subjectId = 14, topicId = 16,
+            text = "The most common cause of conductive hearing loss in adults is:",
+            explanation = """TYPES OF HEARING LOSS:
+
+CONDUCTIVE HEARING LOSS (CHL): Problem in outer or middle ear — sound transmission impaired.
+SENSORINEURAL HEARING LOSS (SNHL): Problem in cochlea or auditory nerve — sound perception impaired.
+MIXED: Both components.
+
+MOST COMMON CAUSE OF CHL IN ADULTS: OTOSCLEROSIS ★
+
+OTOSCLEROSIS:
+• Abnormal bone remodelling (spongiosis) of the bony labyrinth, specifically fixation of the STAPES footplate in the oval window
+• Demographics: Young adults (15–45 years); females > males (2:1); often bilateral
+• Inheritance: Autosomal dominant with variable penetrance; measles virus implicated
+• Symptoms: Progressive CHL, may have tinnitus; paracusis Willisii (hears better in noisy environments)
+
+AUDIOLOGICAL FINDINGS:
+• Carhart's notch: Dip in bone conduction at 2000 Hz (characteristic of otosclerosis)
+• Type As (shallow) tympanogram (stiff ossicular chain)
+• Absent stapedial reflexes
+
+TREATMENT:
+• Surgical: Stapedectomy / Stapedotomy (replacement of stapes — excellent results)
+• Medical (slow progression): Sodium fluoride, bisphosphonates
+• Hearing aid (if surgery declined)
+
+OTHER COMMON CAUSES OF CHL: Wax (cerumen) impaction, Otitis media with effusion (glue ear — commonest in children), Tympanic membrane perforation, Ossicular discontinuity.""",
+            options = listOf(opt("Otosclerosis", true), opt("Presbycusis", false), opt("Acoustic neuroma", false), opt("Ménière's disease", false))
+        ),
+        q(subjectId = 14, topicId = 16,
+            text = "Rinne test is negative (BC > AC) in:",
+            explanation = """RINNE TEST:
+
+PROCEDURE: 512 Hz tuning fork placed on mastoid process (bone conduction — BC), then in front of external auditory meatus (air conduction — AC).
+
+NORMAL (Rinne Positive): AC > BC (air conduction better; sound heard longer/louder via air) ★ — indicates NORMAL hearing or SENSORINEURAL HEARING LOSS
+
+ABNORMAL (Rinne Negative): BC > AC ★ — indicates CONDUCTIVE HEARING LOSS (≥15–20 dB)
+
+REASON: In CHL, the middle ear mechanism is impaired, so AC is reduced; BC bypasses the middle ear and is unaffected.
+
+FALSE NEGATIVE RINNE (Pseudo Rinne Negative):
+• Occurs in SEVERE UNILATERAL SENSORINEURAL HEARING LOSS (dead ear)
+• The dead ear appears BC > AC — actually hearing bone conduction via the OPPOSITE (normal) cochlea
+• Corrected by Weber test and masking
+
+WEBER TEST:
+• Lateralises to AFFECTED ear in CHL (better bone conduction to that side)
+• Lateralises to UNAFFECTED ear in SNHL (better cochlea)
+
+ABSOLUTE BONE CONDUCTION (ABC) TEST (Schwabach):
+• Compare patient's BC with examiner's BC
+• Reduced in SNHL; normal in CHL
+
+COMMON CAUSES GIVING NEGATIVE RINNE: Otosclerosis, wax, otitis media with effusion (OME), tympanic membrane perforation.""",
+            options = listOf(opt("Conductive hearing loss", true), opt("Sensorineural hearing loss", false), opt("Normal hearing", false), opt("Mixed hearing loss", false))
+        ),
+
+        // ── ORTHOPEDICS: Fractures ─────────────────────────────────────────────
+        q(subjectId = 15, topicId = 17,
+            text = "Garden classification is used for fractures of the:",
+            explanation = """GARDEN CLASSIFICATION — FEMORAL NECK FRACTURES:
+
+SITE: Intracapsular fracture of the femoral neck (subcapital fracture)
+
+CLASSIFICATION (based on degree of displacement and trabecular alignment):
+Stage I: Incomplete (impacted in valgus) — trabecular pattern not fully interrupted
+Stage II: Complete but undisplaced — trabeculae misaligned but no displacement
+Stage III: Complete, partially displaced — trabecular pattern disrupted, partial displacement
+Stage IV: Complete, fully displaced — complete loss of trabecular alignment
+
+CLINICAL IMPORTANCE:
+• Garden I & II = Undisplaced → Internal fixation (cannulated screws) — preserve femoral head
+• Garden III & IV = Displaced → Higher risk of avascular necrosis (AVN) → Hemiarthroplasty (elderly) or Total Hip Replacement
+
+BLOOD SUPPLY OF FEMORAL HEAD:
+• Main supply: Medial femoral circumflex artery (retinacular vessels — posterior capsule)
+• Minor: Ligamentum teres (foveolar artery) — significant only in children
+• Fracture disrupts retinacular vessels → AVN risk 15–35% (displaced) vs <5% (undisplaced)
+
+COMPLICATIONS:
+Early: Fat embolism, DVT/PE, pressure sores
+Late: AVN (most important), non-union, osteoarthritis
+
+MNEMONIC: "Garden I-II = Fix it; Garden III-IV = Replace it (elderly) or Fix cautiously (young)".""",
+            options = listOf(opt("Femoral neck", true), opt("Distal radius", false), opt("Humeral shaft", false), opt("Patella", false))
+        ),
+        q(subjectId = 15, topicId = 17,
+            text = "Volkmann's ischaemic contracture most commonly follows fracture of:",
+            explanation = """VOLKMANN'S ISCHAEMIC CONTRACTURE:
+
+DEFINITION: A serious complication resulting from compartment syndrome → ischaemia → fibrosis and contracture of muscles of the forearm, resulting in a characteristic deformity.
+
+MOST COMMON CAUSE: Supracondylar fracture of the humerus in CHILDREN ★ (most common paediatric elbow fracture — extension type, Gartland classification)
+
+PATHOPHYSIOLOGY:
+Supracondylar fracture / tight cast / swelling → Increased compartment pressure → Compression of brachial artery and anterior interosseous nerve → Muscle ischaemia → Necrosis → Fibrosis → Contracture
+
+6 P's of COMPARTMENT SYNDROME:
+• Pain (disproportionate, especially on passive stretch) — earliest and most reliable
+• Pressure (tense/woody compartment)
+• Paraesthesia (nerve ischaemia)
+• Paralysis (late sign — motor nerve ischaemia)
+• Pallor
+• Pulselessness (late, unreliable — pulse may be present despite compartment syndrome)
+
+DEFORMITY OF ESTABLISHED CONTRACTURE:
+• Elbow: Flexed
+• Forearm: Pronated
+• Wrist: Flexed
+• Fingers: Flexed at MCP and IP joints (intrinsic minus hand)
+• Thumb: Adducted
+
+TREATMENT:
+Acute (compartment syndrome): Emergency fasciotomy (within 6 hours)
+Established: Physiotherapy → Muscle slide operation (Page's) → Tendon lengthening""",
+            options = listOf(opt("Supracondylar fracture of humerus", true), opt("Fracture of both bones of forearm", false), opt("Colles fracture", false), opt("Monteggia fracture-dislocation", false))
+        ),
+        q(subjectId = 15, topicId = 17,
+            text = "The most common primary malignant bone tumour in adolescents is:",
+            explanation = """PRIMARY MALIGNANT BONE TUMOURS — AGE AND SITE:
+
+OSTEOSARCOMA (Osteogenic sarcoma):
+• Most common primary malignant bone tumour overall ★
+• Peak age: 10–20 years (adolescents) — second peak in elderly (Paget's disease associated)
+• Most common site: Distal femur (metaphysis) > proximal tibia > proximal humerus — around the knee
+
+EWING'S SARCOMA:
+• Second most common primary malignant bone tumour in children/adolescents
+• Peak age: 5–15 years
+• Site: Diaphysis of long bones (unlike osteosarcoma which affects metaphysis)
+• X-ray: "Onion skin" periosteal reaction
+
+CHONDROSARCOMA:
+• Cartilage-forming malignant tumour
+• Peak age: >40 years (older adults)
+• Site: Pelvis, proximal femur, shoulder girdle
+
+MULTIPLE MYELOMA: Most common overall bone malignancy (but it is haematological, not primary bone tumour in strict sense)
+
+OSTEOSARCOMA — X-RAY:
+• Codman's triangle: Elevated periosteum (reactive new bone at periphery of tumour)
+• Sunburst pattern: Perpendicular periosteal reaction (classic but less specific)
+• Mixed lytic and sclerotic lesion at metaphysis
+
+TREATMENT: Wide surgical resection + limb salvage surgery (where possible) + chemotherapy (neoadjuvant + adjuvant: methotrexate, doxorubicin, cisplatin — MAP regimen)""",
+            options = listOf(opt("Osteosarcoma", true), opt("Chondrosarcoma", false), opt("Ewing's sarcoma", false), opt("Giant cell tumour", false))
+        ),
+
+        // ── PSYCHIATRY: Mood Disorders ─────────────────────────────────────────
+        q(subjectId = 16, topicId = 18,
+            text = "First-rank symptoms (Schneider) of schizophrenia include:",
+            explanation = """SCHNEIDER'S FIRST-RANK SYMPTOMS (FRS) OF SCHIZOPHRENIA:
+
+DEFINITION: Specific psychopathological experiences described by Kurt Schneider (1959) as highly characteristic (though not pathognomonic) of schizophrenia.
+
+FIRST-RANK SYMPTOMS (MNEMONIC — "ABCDE"):
+A — Auditory hallucinations (3 types):
+  • Voices discussing the patient in 3rd person
+  • Voices giving a running commentary on actions
+  • Echo of thought (thought echo / écho de la pensée)
+B — Broadcasting of thought (Thought broadcasting)
+C — Controlled passivity experiences (Made actions, impulses, feelings)
+D — Delusional perception (Normal perception → abnormal meaning suddenly, in 2 steps)
+E — Experiences of thought alienation:
+  • Thought insertion (thoughts inserted by external agency)
+  • Thought withdrawal (thoughts removed by external force)
+
+SECOND-RANK SYMPTOMS: Other hallucinations, perplexity, depressive/euphoric changes, emotional blunting (less specific).
+
+CURRENT STATUS: DSM-5 no longer distinguishes FRS specifically (moved away from Schneiderian criteria). ICD-10 still uses FRS prominently. FRS are present in ~70% of schizophrenia but also in ~10–15% of mania and psychotic depression.
+
+TREATMENT: Antipsychotics (dopamine D2 antagonists). Atypical (clozapine — treatment-resistant). CBT, family therapy.""",
+            options = listOf(opt("Thought broadcasting and auditory hallucinations in 3rd person", true), opt("Visual hallucinations and amnesia", false), opt("Depressed mood and suicidal ideation", false), opt("Obsessions and compulsions", false))
+        ),
+        q(subjectId = 16, topicId = 18,
+            text = "Drug of choice for acute mania is:",
+            explanation = """ACUTE MANIA — PHARMACOLOGICAL MANAGEMENT:
+
+FIRST-LINE TREATMENT FOR ACUTE MANIA:
+• Lithium carbonate ★ (drug of choice for classic euphoric mania, less effective for mixed/dysphoric mania)
+• Valproate (sodium valproate / divalproex) — preferred when rapid control needed, mixed features, or substance abuse
+• Atypical antipsychotics: Olanzapine, risperidone, quetiapine, aripiprazole
+
+LITHIUM IN MANIA:
+• Mechanism: Inhibits inositol monophosphatase → reduces phosphatidylinositol signalling; also affects GSK-3β
+• Time to effect: 5–10 days (slow onset — often combined with antipsychotic for immediate control)
+• Therapeutic range: 0.6–1.2 mEq/L (acute mania); 0.8–1.0 mEq/L (maintenance)
+• Toxic level: >1.5 mEq/L
+
+LITHIUM TOXICITY SIGNS (in order of increasing severity):
+• Mild (1.5–2.0): Nausea, vomiting, diarrhoea, fine tremor, polyuria
+• Moderate (2.0–2.5): Coarse tremor, ataxia, confusion, drowsiness
+• Severe (>2.5): Seizures, coma, arrhythmias, death
+
+MONITORING: Thyroid function (hypothyroidism), renal function (nephrogenic DI), ECG (T-wave changes), serum levels every 3 months.
+
+CONTRAINDICATIONS: Renal impairment, first trimester pregnancy (Ebstein's anomaly risk), dehydration.""",
+            options = listOf(opt("Lithium", true), opt("Haloperidol alone", false), opt("Diazepam", false), opt("Fluoxetine", false))
+        ),
+        q(subjectId = 16, topicId = 18,
+            text = "Electroconvulsive therapy (ECT) is the treatment of choice in:",
+            explanation = """ELECTROCONVULSIVE THERAPY (ECT):
+
+MECHANISM: Brief electrical stimulus → generalised seizure → therapeutic effect (mechanism not fully understood). Increases monoamine neurotransmission, promotes neurogenesis, modulates HPA axis.
+
+ABSOLUTE INDICATIONS (life-saving, ECT is DOC):
+• Severe depression with suicidal intent (high immediate risk) ★
+• Catatonia (especially malignant catatonia / lethal catatonia)
+• Severe depression with refusal to eat/drink (danger of starvation)
+• Pregnancy with severe depression (safer than antidepressants)
+
+RELATIVE INDICATIONS:
+• Treatment-resistant depression (failed ≥2 antidepressants)
+• Puerperal (post-partum) psychosis
+• Acute mania not responding to drugs
+• Severe psychotic depression
+
+CONTRAINDICATIONS:
+• No absolute contraindications to ECT
+• Relative: Recent MI (<3 months), raised intracranial pressure, phaeochromocytoma, aortic aneurysm
+
+SIDE EFFECTS:
+• Cognitive: Anterograde + retrograde amnesia (usually transient) — most common complaint
+• Cardiovascular: Transient bradycardia (vagal) → tachycardia
+• Headache, myalgia (from succinylcholine)
+
+TECHNIQUE: Modified ECT (with anaesthesia + succinylcholine for muscle relaxation); bilateral or unilateral (non-dominant) electrode placement; 6–12 sessions typically.""",
+            options = listOf(opt("Severe depression with high suicidal risk", true), opt("Mild anxiety disorder", false), opt("Substance use disorder", false), opt("Obsessive-compulsive disorder", false))
+        ),
+
+        // ── DERMATOLOGY: Skin Infections ──────────────────────────────────────
+        q(subjectId = 17, topicId = 19,
+            text = "Nikolsky sign is positive in:",
+            explanation = """NIKOLSKY SIGN:
+
+DEFINITION: Lateral sliding pressure on clinically normal skin adjacent to a blister causes the superficial epidermis to slide/detach, revealing a moist red erosion beneath. Named after Pyotr Nikolsky (Russian dermatologist, 1858–1940).
+
+MECHANISM: Present when there is intraepidermal splitting (loss of cohesion between epidermal keratinocytes) due to destruction of desmoglein (desmosomal protein).
+
+POSITIVE IN (INTRAEPIDERMAL BLISTERING — LEVEL: STRATUM SPINOSUM/GRANULOSA):
+• Pemphigus vulgaris ★ (anti-desmoglein 3 antibodies) — most classic
+• Staphylococcal Scalded Skin Syndrome (SSSS) — exfoliative toxin cleaves desmoglein 1
+• Toxic Epidermal Necrolysis (TEN) — drug-induced, widespread epidermal detachment
+• Pemphigus foliaceus (anti-desmoglein 1)
+
+NEGATIVE IN (SUBEPIDERMAL BLISTERING — LEVEL: BELOW EPIDERMIS):
+• Bullous pemphigoid (anti-BP180/BP230 — basement membrane) — Nikolsky NEGATIVE
+• Dermatitis herpetiformis
+• Epidermolysis bullosa
+
+PEMPHIGUS VULGARIS vs BULLOUS PEMPHIGOID:
+Feature            | Pemphigus vulgaris | Bullous pemphigoid
+Age                | 40–60 years        | Elderly (>60)
+Nikolsky           | Positive ★         | Negative
+Blister            | Flaccid, fragile    | Tense, firm
+Mucous membrane    | Involved (90%)     | Rarely involved
+Antibody           | Anti-Dsg3          | Anti-BP180""",
+            options = listOf(opt("Pemphigus vulgaris", true), opt("Bullous pemphigoid", false), opt("Lichen planus", false), opt("Psoriasis", false))
+        ),
+        q(subjectId = 17, topicId = 19,
+            text = "Wickham's striae are seen in:",
+            explanation = """WICKHAM'S STRIAE:
+
+DEFINITION: Fine, whitish, lace-like network or network of lines seen on the surface of papules of lichen planus. Described by Louis Frédéric Wickham (1895). Best seen with dermatoscope or hand lens with oil immersion.
+
+LICHEN PLANUS (LP) — 6 P's:
+• Pruritic
+• Purple (violaceous)
+• Polygonal
+• Planar (flat-topped)
+• Papules (and plaques)
+• Present on flexor aspects (wrists, ankles, lower back)
+
+WICKHAM'S STRIAE: Pathognomonic of lichen planus ★. Represent focal thickening of granular layer (hypergranulosis) seen through the epidermis.
+
+HISTOPATHOLOGY OF LP:
+• Hyperkeratosis + wedge-shaped hypergranulosis (Wickham's striae)
+• Irregular acanthosis (saw-toothed rete ridges)
+• Band-like lymphocytic infiltrate (T cells) at dermoepidermal junction
+• Civatte bodies (colloid/cytoid bodies) = dyskeratotic keratinocytes
+
+VARIANTS: Oral LP (reticular pattern on buccal mucosa most common), hypertrophic LP (legs), atrophic LP, bullous LP, annular LP
+
+TREATMENT: Topical steroids (first-line); systemic steroids for extensive disease; acitretin; tacrolimus for oral LP
+
+LP ASSOCIATIONS: Hepatitis C (strong), primary biliary cirrhosis, autoimmune thyroid disease""",
+            options = listOf(opt("Lichen planus", true), opt("Psoriasis", false), opt("Pemphigus vulgaris", false), opt("Tinea corporis", false))
+        ),
+        q(subjectId = 17, topicId = 19,
+            text = "Auspitz sign is characteristic of:",
+            explanation = """AUSPITZ SIGN:
+
+DEFINITION: Appearance of multiple bleeding points (like drops of blood or dew) when a psoriatic scale is removed by scraping. The bleeding occurs because the dilated capillaries of the elongated dermal papillae are exposed when the thin suprapapillary plates are removed.
+
+PSORIASIS — KEY FEATURES:
+• Chronic, relapsing, immune-mediated disorder (Th1/Th17 driven) — IL-17, IL-23 pathway
+• Genetics: HLA-Cw6 (strongest association)
+
+SIGNS ON SCRAPING (Grattage test — done with curette/glass slide):
+1. Candle grease sign (Bougie de cire): Scraping produces whitish scales (like scraping wax from candle)
+2. Last membrane / Bulkeley's membrane: Further scraping reveals thin transparent membrane
+3. Auspitz sign ★: Further scraping reveals multiple bleeding points (pinpoint bleeding)
+
+HISTOPATHOLOGY:
+• Acanthosis (epidermal thickening)
+• Munro microabscesses (neutrophils in stratum corneum)
+• Spongiform pustules of Kogoj (neutrophils in spinous layer)
+• Elongated rete ridges, suprapapillary plate thinning
+
+TREATMENT: Topical (steroids, calcipotriol, coal tar, dithranol); Phototherapy (NB-UVB); Systemic (methotrexate, cyclosporine, acitretin); Biologics (TNF inhibitors: adalimumab, etanercept; IL-17 inhibitors: secukinumab; IL-23 inhibitors: guselkumab)""",
+            options = listOf(opt("Psoriasis", true), opt("Lichen planus", false), opt("Pemphigus vulgaris", false), opt("Seborrhoeic dermatitis", false))
+        ),
+
+        // ── RADIOLOGY: Imaging Techniques ─────────────────────────────────────
+        q(subjectId = 18, topicId = 20,
+            text = "X-ray of chest in tension pneumothorax shows tracheal shift to the:",
+            explanation = """TENSION PNEUMOTHORAX:
+
+PATHOPHYSIOLOGY: One-way valve mechanism — air enters pleural space on inspiration but cannot escape → progressive accumulation → increasing intrapleural pressure → ipsilateral lung collapse → mediastinal shift to OPPOSITE side → compression of contralateral lung and great veins → reduced venous return → cardiovascular collapse (obstructive shock).
+
+X-RAY FINDINGS:
+• Absent lung markings on affected side ★
+• Hyperlucent hemithorax
+• Trachea shifted to OPPOSITE (contralateral) side ★ (pushed away from the tension)
+• Mediastinum shifted to opposite side
+• Depressed/flattened ipsilateral hemidiaphragm
+• Contralateral lung compressed
+
+CLINICAL PRESENTATION: (Tension PNX is a CLINICAL diagnosis — do NOT wait for X-ray if patient is deteriorating)
+• Severe respiratory distress
+• Tracheal deviation (late sign, contralateral)
+• Absent breath sounds on affected side
+• Distended neck veins (raised JVP) — due to impaired venous return
+• Hypotension, tachycardia → cardiovascular collapse
+
+COMPARE with simple PNX: No tracheal shift, no haemodynamic compromise.
+
+TREATMENT: DO NOT wait for X-ray — immediate needle decompression (2nd ICS, midclavicular line) followed by formal chest drain (5th ICS, midaxillary line — safe triangle).""",
+            options = listOf(opt("Opposite (contralateral) side", true), opt("Same (ipsilateral) side", false), opt("Trachea is central", false), opt("Trachea is not visible", false))
+        ),
+        q(subjectId = 18, topicId = 20,
+            text = "Investigation of choice for detection of pulmonary embolism is:",
+            explanation = """PULMONARY EMBOLISM (PE) — DIAGNOSIS:
+
+GOLD STANDARD / INVESTIGATION OF CHOICE: CT Pulmonary Angiography (CTPA) ★
+
+CTPA:
+• Sensitivity: ~95–98%; Specificity: ~97%
+• Fast, widely available, non-invasive
+• Can see clot in pulmonary arteries directly (saddle embolus, lobar, segmental)
+• Also identifies alternative diagnoses (pneumonia, pleural effusion, etc.)
+• Contraindications: Contrast allergy, severe renal impairment
+
+OTHER INVESTIGATIONS:
+V/Q Scan (Ventilation/Perfusion scan):
+• Useful when CTPA contraindicated (allergy to contrast, pregnancy, renal failure)
+• Matched defect = normal; Unmatched (ventilated, non-perfused) = high probability PE
+• Result interpreted as: Low/intermediate/high probability
+
+D-dimer:
+• High sensitivity (>95%) but LOW specificity
+• Negative D-dimer effectively RULES OUT PE in LOW pre-test probability (Wells score ≤4)
+• Positive D-dimer → proceed to imaging
+
+ECG in PE: Sinus tachycardia (most common); S1Q3T3 pattern (classic but uncommon); right heart strain (RBBB, P-pulmonale); T-wave inversion in V1–V4
+
+CXR in PE: Usually normal; Hampton's hump (wedge opacity, infarction); Westermark sign (oligaemia distal to embolus)
+
+TREATMENT: Anticoagulation (LMWH, DOACs); thrombolysis (alteplase) for massive PE with haemodynamic compromise.""",
+            options = listOf(opt("CT pulmonary angiography (CTPA)", true), opt("Chest X-ray", false), opt("V/Q scan", false), opt("ECG", false))
+        ),
+        q(subjectId = 18, topicId = 20,
+            text = "MRI is preferred over CT for imaging of:",
+            explanation = """MRI vs CT — WHEN TO USE WHICH:
+
+MRI ADVANTAGES OVER CT:
+• Superior soft tissue contrast (no ionising radiation)
+• Better for: Brain parenchyma, spinal cord, posterior fossa, musculoskeletal soft tissues, liver lesions
+
+SPECIFIC INDICATIONS WHERE MRI IS PREFERRED:
+1. BRAIN: Posterior fossa lesions (CT has beam hardening artefact from bone) ★
+2. SPINAL CORD: Myelopathy, cord compression, syringomyelia, disc disease
+3. MUSCULOSKELETAL: Soft tissue tumours, ligament/meniscal tears (ACL, MCL), osteomyelitis, avascular necrosis
+4. LIVER: Characterisation of hepatic lesions (HCC, haemangioma, metastases)
+5. Breast: Breast MRI for high-risk screening, implant assessment
+6. Prostate: Multiparametric MRI for prostate cancer staging
+7. BRAIN STROKE: DWI MRI detects acute ischaemic infarct within minutes (CT misses early infarcts)
+
+CT ADVANTAGES OVER MRI:
+• Faster (seconds vs minutes) — trauma, unstable patients
+• Better for: Bone detail, calcifications, lung parenchyma, bowel (pneumoperitoneum)
+• Cheaper, more available
+
+CONTRAINDICATIONS TO MRI:
+• Cardiac pacemakers (most older types), cochlear implants, metallic foreign body in orbit
+• Claustrophobia (can use open MRI or sedation)
+• First trimester pregnancy (relative — avoid unless essential)""",
+            options = listOf(opt("Posterior fossa and spinal cord lesions", true), opt("Acute bony fractures", false), opt("Lung parenchymal lesions", false), opt("Bowel perforation", false))
+        ),
+
+        // ── ANESTHESIA: General Anaesthesia ───────────────────────────────────
+        q(subjectId = 19, topicId = 21,
+            text = "Mallampati classification is used to assess:",
+            explanation = """MALLAMPATI CLASSIFICATION:
+
+PURPOSE: Predicts difficult laryngoscopy/intubation by assessing the relationship between tongue size and pharyngeal space. Described by SR Mallampati (1985), modified by Samsoon and Young.
+
+ASSESSMENT: Patient sits upright, opens mouth maximally, protrudes tongue, no phonation.
+
+CLASSES (what is visible):
+Class I: Soft palate, uvula, fauces, tonsillar pillars — all visible (EASY intubation)
+Class II: Soft palate, uvula, fauces visible (pillars not seen)
+Class III: Only soft palate and base of uvula visible
+Class IV: Only hard palate visible (DIFFICULT intubation ★)
+
+CORRELATION WITH INTUBATION:
+Class I & II = Expected easy laryngoscopy
+Class III & IV = Expected difficult laryngoscopy (consider awake fibreoptic intubation)
+
+OTHER PREDICTORS OF DIFFICULT AIRWAY (MNEMONIC — "LEMON"):
+L — Look externally (obesity, receding chin, large tongue, beard, short neck)
+E — Evaluate 3-3-2 rule:
+  • 3 fingers between incisors (inter-incisor gap ≥3 cm)
+  • 3 fingers from chin to hyoid (thyromental distance ≥3 finger-breadths = 6 cm)
+  • 2 fingers from hyoid to thyroid notch
+M — Mallampati (Class III/IV)
+O — Obstruction (tumour, haematoma, epiglottitis, Ludwig's angina)
+N — Neck mobility (restricted = risk: ankylosing spondylitis, cervical spine injury)""",
+            options = listOf(opt("Difficulty of endotracheal intubation", true), opt("Depth of anaesthesia", false), opt("Risk of aspiration", false), opt("Cardiac output", false))
+        ),
+        q(subjectId = 19, topicId = 21,
+            text = "Minimum Alveolar Concentration (MAC) of an inhalational anaesthetic is:",
+            explanation = """MINIMUM ALVEOLAR CONCENTRATION (MAC):
+
+DEFINITION: The alveolar concentration (expressed as % of 1 atmosphere) of an inhalational anaesthetic at 1 atmosphere that prevents movement in 50% of patients in response to a standardised surgical stimulus (skin incision). Measured at steady state.
+
+• MAC is an ED50 — median effective dose
+• At 1 MAC: 50% of patients do NOT move with surgical incision
+• At 1.3 MAC: ~95% of patients do not move (MAC-95)
+
+MAC VALUES (memorise these):
+Agent           | MAC (%)
+Nitrous oxide   | 104% (>100% — cannot achieve MAC at 1 atm alone, used as adjunct)
+Desflurane      | 6–7%
+Sevoflurane     | 2%
+Isoflurane      | 1.17%
+Halothane       | 0.75%
+Xenon           | 71%
+
+LOWER MAC = MORE POTENT (less concentration needed)
+
+FACTORS DECREASING MAC (↓ anaesthetic requirement):
+• Increasing age (elderly need less)
+• Hypothermia (↓ metabolic rate)
+• Pregnancy (↑ progesterone)
+• Opioids, sedatives, alcohol
+• Anaemia, hypoxia, hypotension
+
+FACTORS INCREASING MAC (↑ anaesthetic requirement):
+• Hyperthermia
+• Chronic alcohol use (CNS tolerance)
+• Hypernatraemia
+• Young children
+
+MNEMONIC: "HOT increases MAC; COLD decreases MAC" — temperature effect is most important.""",
+            options = listOf(opt("Alveolar concentration preventing movement in 50% of patients", true), opt("Maximum safe dose of anaesthetic", false), opt("Dose causing unconsciousness in all patients", false), opt("Concentration in blood at equilibrium", false))
+        ),
+        q(subjectId = 19, topicId = 21,
+            text = "Suxamethonium (succinylcholine) is classified as a:",
+            explanation = """NEUROMUSCULAR BLOCKING AGENTS (NMBAs):
+
+TWO TYPES:
+1. DEPOLARISING NMBAs — e.g., Suxamethonium (succinylcholine) ★
+2. NON-DEPOLARISING NMBAs — e.g., vecuronium, rocuronium, atracurium, pancuronium
+
+SUXAMETHONIUM (SUCCINYLCHOLINE):
+• Mechanism: Binds nicotinic ACh receptors at NMJ → persistent depolarisation (Phase I block) → fasciculations followed by flaccid paralysis
+• Onset: 30–60 seconds (FASTEST of all NMBAs)
+• Duration: 3–5 minutes (SHORTEST — hydrolysed by plasma pseudocholinesterase/butyrylcholinesterase)
+• Use: Rapid Sequence Induction (RSI) for emergency intubation (full stomach, aspiration risk)
+
+ADVANTAGES: Ultra-short duration (reverses spontaneously), fastest onset
+
+DISADVANTAGES / COMPLICATIONS:
+• Hyperkalaemia: K⁺ rises ~0.5 mEq/L normally; DANGEROUS RISE (2–3 mEq/L) in: Burns, crush injury, prolonged immobilisation, denervation, spinal injury, myopathies → use rocuronium instead
+• Malignant hyperthermia (rare, triggered by suxamethonium + volatile agents — RYR1 gene mutation)
+• Suxamethonium apnoea: Pseudocholinesterase deficiency (genetic) → prolonged paralysis (hours); test: Dibucaine number
+• Raised IOP, ICP, intragastric pressure (fasciculations)
+• Bradycardia (muscarinic effect — especially repeated doses, in children)
+
+REVERSAL: Cannot be reversed pharmacologically (waits for pseudocholinesterase to hydrolyse it).""",
+            options = listOf(opt("Depolarising neuromuscular blocking agent", true), opt("Non-depolarising neuromuscular blocker", false), opt("Volatile inhalational agent", false), opt("Opioid analgesic", false))
         ),
     )
 
