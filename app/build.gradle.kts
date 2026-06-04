@@ -12,8 +12,8 @@ android {
 
     defaultConfig {
         applicationId = "com.marrow.companion"
-        minSdk = 26
-        targetSdk = 35
+        minSdk = 30          // Android 11 — minimum per requirement
+        targetSdk = 35       // Android 15 (covers 11–15; runs fine on 16)
         versionCode = 1
         versionName = "1.0.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -74,6 +74,11 @@ dependencies {
     implementation(libs.okhttp.logging)
 
     implementation(libs.coil.compose)
+
+    // Android 12+ splash screen (backported to API 30)
+    implementation("androidx.core:core-splashscreen:1.0.1")
+    // Edge-to-edge window insets (API 30+)
+    implementation("androidx.core:core-ktx:1.13.1")
 
     // ML Kit on-device translation — free, no API key, works offline
     implementation("com.google.mlkit:translate:17.0.2")
