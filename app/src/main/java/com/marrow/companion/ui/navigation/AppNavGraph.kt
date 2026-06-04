@@ -1,5 +1,10 @@
 package com.marrow.companion.ui.navigation
 
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
@@ -69,9 +74,27 @@ fun AppNavGraph() {
         }
     ) { padding ->
         NavHost(
-            navController = navController,
+            navController    = navController,
             startDestination = NavRoutes.Splash.route,
-            modifier = Modifier.padding(padding)
+            modifier         = Modifier.padding(padding),
+            enterTransition  = {
+                val from = navItems.indexOfFirst { it.route == initialState.destination.route }
+                val to   = navItems.indexOfFirst { it.route == targetState.destination.route }
+                when {
+                    from >= 0 && to >= 0 -> slideInHorizontally(tween(300)) { if (to > from) it else -it }
+                    else -> fadeIn(tween(300))
+                }
+            },
+            exitTransition   = {
+                val from = navItems.indexOfFirst { it.route == initialState.destination.route }
+                val to   = navItems.indexOfFirst { it.route == targetState.destination.route }
+                when {
+                    from >= 0 && to >= 0 -> slideOutHorizontally(tween(300)) { if (to > from) -it else it }
+                    else -> fadeOut(tween(300))
+                }
+            },
+            popEnterTransition  = { slideInHorizontally(tween(300)) { -it } },
+            popExitTransition   = { slideOutHorizontally(tween(300)) { it } }
         ) {
             composable(NavRoutes.Splash.route) {
                 SplashScreen(
