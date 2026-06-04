@@ -157,6 +157,9 @@ fun AppNavGraph() {
                             navController.navigate(NavRoutes.SubjectNotes.create(subjectId))
                         }
                     },
+                    onTopicClick  = { subjectId, topicId ->
+                        navController.navigate(NavRoutes.TopicNotes.create(subjectId, topicId))
+                    },
                     onNotesClick  = { navController.navigate(NavRoutes.SubjectNotes.create(0L)) },
                     onGreenClick  = { navController.navigate(NavRoutes.SubjectNotes.create(0L)) },
                     onOrangeClick = { navController.navigate(NavRoutes.SubjectNotes.create(0L)) }

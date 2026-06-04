@@ -85,6 +85,14 @@ interface HighlightDao {
     fun getCountBySubject(): Flow<List<SubjectHighlightCount>>
 
     @Query("""
+        SELECT q.subjectId as subjectId, q.topicId as topicId, COUNT(h.id) as count
+        FROM highlights h INNER JOIN questions q ON h.questionId = q.id
+        WHERE q.topicId IS NOT NULL
+        GROUP BY q.subjectId, q.topicId
+    """)
+    fun getCountByTopic(): Flow<List<TopicHighlightCount>>
+
+    @Query("""
         SELECT h.id as id, h.questionId as questionId, h.text as text,
                h.color as color, h.createdAt as createdAt,
                s.name as subjectName, t.name as topicName
@@ -111,6 +119,7 @@ interface HighlightDao {
 }
 
 data class SubjectHighlightCount(val subjectId: Long, val count: Int)
+data class TopicHighlightCount(val subjectId: Long, val topicId: Long, val count: Int)
 
 data class HighlightForReview(
     val id: Long,
