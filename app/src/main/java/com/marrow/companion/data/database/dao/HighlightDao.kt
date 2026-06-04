@@ -45,7 +45,6 @@ interface HighlightDao {
     @Query("DELETE FROM highlights WHERE questionId = :questionId AND text = :text")
     suspend fun deleteByQuestionAndText(questionId: Long, text: String)
 
-<<<<<<< HEAD
     // Highlight Inbox — next due for review (nextReviewDate <= today OR null)
     @Query("""
         SELECT h.id, h.questionId, h.text, h.color, h.createdAt,
@@ -72,8 +71,6 @@ interface HighlightDao {
     @Query("UPDATE highlights SET lastReviewedAt = :time WHERE id = :id")
     suspend fun markReviewed(id: Long, time: Long = System.currentTimeMillis())
 
-=======
->>>>>>> origin/Sri_hackthon
     @Query("SELECT COUNT(*) FROM highlights WHERE color = 'GREEN'")
     fun getGreenCount(): Flow<Int>
 
@@ -114,7 +111,6 @@ interface HighlightDao {
 }
 
 data class SubjectHighlightCount(val subjectId: Long, val count: Int)
-<<<<<<< HEAD
 
 data class HighlightForReview(
     val id: Long,
@@ -129,8 +125,6 @@ data class HighlightForReview(
     val explanation: String = ""
 )
 
-=======
->>>>>>> origin/Sri_hackthon
 data class HighlightWithSubject(
     val id: Long,
     val questionId: Long,

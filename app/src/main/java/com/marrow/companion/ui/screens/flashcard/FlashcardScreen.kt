@@ -46,7 +46,8 @@ fun FlashcardScreen(viewModel: FlashcardViewModel = hiltViewModel()) {
                     )
 
                     if (state.isFlipped) {
-                        RatingRow(onRate = { viewModel.rate(it) })
+                        RatingRow(onRate = { viewModel.
+                        rate(it) })
                     } else {
                         Text("Tap card to reveal answer",
                             style = MaterialTheme.typography.bodySmall,

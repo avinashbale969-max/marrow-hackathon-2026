@@ -3,11 +3,8 @@ package com.marrow.companion.ui.screens.dashboard
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.marrow.companion.data.database.dao.FlashcardDao
-<<<<<<< HEAD
 import com.marrow.companion.data.database.dao.HighlightDao
 import com.marrow.companion.data.database.dao.HighlightForReview
-=======
->>>>>>> origin/Sri_hackthon
 import com.marrow.companion.data.database.dao.QuestionDao
 import com.marrow.companion.data.database.dao.QuestionWithOptions
 import com.marrow.companion.data.database.dao.StudySessionDao
@@ -34,7 +31,6 @@ class DashboardViewModel @Inject constructor(
     private val flashcardDao: FlashcardDao,
     private val sessionDao: StudySessionDao,
     private val questionDao: QuestionDao,
-<<<<<<< HEAD
     private val seeder: DatabaseSeeder,
     private val highlightDao: HighlightDao
 ) : ViewModel() {
@@ -58,11 +54,6 @@ class DashboardViewModel @Inject constructor(
         viewModelScope.launch { highlightDao.markReviewed(id) }
     }
 
-=======
-    private val seeder: DatabaseSeeder
-) : ViewModel() {
-
->>>>>>> origin/Sri_hackthon
     private val _extra = MutableStateFlow(
         Triple<Int, QuestionWithOptions?, Long?>(0, null, null)
     )

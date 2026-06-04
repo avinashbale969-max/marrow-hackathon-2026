@@ -12,13 +12,8 @@ android {
 
     defaultConfig {
         applicationId = "com.marrow.companion"
-<<<<<<< HEAD
-        minSdk = 30          // Android 11 — minimum per requirement
-        targetSdk = 35       // Android 15 (covers 11–15; runs fine on 16)
-=======
-        minSdk = 26
+        minSdk = 30
         targetSdk = 35
->>>>>>> origin/Sri_hackthon
         versionCode = 1
         versionName = "1.0.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -80,14 +75,9 @@ dependencies {
 
     implementation(libs.coil.compose)
 
-<<<<<<< HEAD
-    // Android 12+ splash screen (backported to API 30)
-    implementation("androidx.core:core-splashscreen:1.0.1")
     // Edge-to-edge window insets (API 30+)
     implementation("androidx.core:core-ktx:1.13.1")
 
-=======
->>>>>>> origin/Sri_hackthon
     // ML Kit on-device translation — free, no API key, works offline
     implementation("com.google.mlkit:translate:17.0.2")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.3")
