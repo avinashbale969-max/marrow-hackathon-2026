@@ -110,7 +110,6 @@ fun AllNotesScreen(
                     horizontalArrangement = Arrangement.spacedBy(28.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    TypePill(Icons.Filled.Edit, Teal, allNotes.size, "Notes", onClick = onNotesClick)
                     TypePill(Icons.Filled.Highlight, GreenHL,
                         allHighlights.count { it.color != HighlightColor.ORANGE.name }, "Green",
                         onClick = onGreenClick)
