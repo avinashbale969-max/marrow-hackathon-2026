@@ -457,8 +457,6 @@ private fun HighlightInboxCard(
     val daysLabel  = when (daysAgo) { 0 -> "Today"; 1 -> "1 day ago"; else -> "$daysAgo days ago" }
     val isReviewed = highlight.lastReviewedAt != null
     // Full date-time
-    val sdf        = java.text.SimpleDateFormat("dd MMM yyyy, h:mm a", java.util.Locale.getDefault())
-    val dateStr    = sdf.format(java.util.Date(highlight.createdAt))
     val hlColor    = if (highlight.color == "ORANGE") Color(0xFFFFA726) else Color(0xFF66BB6A)
 
     Column(modifier = modifier) {
@@ -488,60 +486,41 @@ private fun HighlightInboxCard(
             Column(modifier = Modifier.padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)) {
 
-                HorizontalDivider(color = Color.Transparent, thickness = 0.dp)
+                // ── "Time to revisit" + highlighted date ──────────────────────
+                Text("Time to revisit this",
+                    fontWeight = FontWeight.Bold, fontSize = 16.sp,
+                    color = Color(0xFF1A1A1A))
+                Text(
+                    java.text.SimpleDateFormat("dd MMM yyyy", java.util.Locale.getDefault())
+                        .format(java.util.Date(highlight.createdAt)),
+                    fontSize = 12.sp, color = Color(0xFF888888)
+                )
 
-                // ── "Time to revisit" + date ──────────────────────────────────
-                Row(verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    modifier = Modifier.fillMaxWidth()) {
-                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                        Text("👀 Time to revisit this",
-                            fontWeight = FontWeight.Bold, fontSize = 16.sp,
-                            color = Color(0xFF1A1A1A))
-                        Row(verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                            Icon(Icons.Filled.CalendarToday, null, tint = Color.Gray,
-                                modifier = Modifier.size(12.dp))
-                            Text(dateStr, fontSize = 12.sp, color = Color.Gray)
-                        }
-                    }
-                }
-
-                // ── Metadata snippet (no highlighted text) ────────────────────
+                // ── Metadata snippet ──────────────────────────────────────────
                 Box(modifier = Modifier.fillMaxWidth()
                     .clip(RoundedCornerShape(10.dp))
                     .background(Color(0xFFF5F5F5))
                     .padding(12.dp)) {
-                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                        Row(verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            modifier = Modifier.fillMaxWidth()) {
-                            // "X days ago · not reviewed" pill
-                            Box(Modifier.clip(RoundedCornerShape(20.dp))
-                                .background(Color(0xFF3D2B0A).copy(alpha = 0.12f))
-                                .padding(horizontal = 10.dp, vertical = 5.dp)) {
-                                Row(verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                                    Icon(Icons.Filled.Schedule, null, tint = Color(0xFFE65100),
-                                        modifier = Modifier.size(12.dp))
-                                    Text("$daysLabel · ${if (isReviewed) "reviewed" else "not reviewed"}",
-                                        fontSize = 12.sp, color = Color(0xFFE65100),
-                                        fontWeight = FontWeight.SemiBold)
-                                }
+                    Row(verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        modifier = Modifier.fillMaxWidth()) {
+
+                        // "X days ago · not reviewed" pill
+                        Box(Modifier.clip(RoundedCornerShape(20.dp))
+                            .background(Color(0xFF3D2B0A).copy(alpha = 0.12f))
+                            .padding(horizontal = 10.dp, vertical = 5.dp)) {
+                            Row(verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                                Icon(Icons.Filled.Schedule, null, tint = Color(0xFFE65100),
+                                    modifier = Modifier.size(12.dp))
+                                Text("$daysLabel · ${if (isReviewed) "reviewed" else "not reviewed"}",
+                                    fontSize = 12.sp, color = Color(0xFFE65100),
+                                    fontWeight = FontWeight.SemiBold)
                             }
-                            // "1 of N" counter
-                            Text("1 of $dueCount", fontSize = 12.sp, color = Color.Gray)
                         }
 
-                        // Highlight color dots
-                        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                            Box(Modifier.size(12.dp).clip(CircleShape)
-                                .background(Color(0xFF66BB6A)))
-                            Box(Modifier.size(12.dp).clip(CircleShape)
-                                .background(Color(0xFFFFA726)))
-                            Box(Modifier.size(12.dp).clip(CircleShape)
-                                .background(hlColor))
-                        }
+                        // Single color dot matching the highlight
+                        Box(Modifier.size(14.dp).clip(CircleShape).background(hlColor))
                     }
                 }
 

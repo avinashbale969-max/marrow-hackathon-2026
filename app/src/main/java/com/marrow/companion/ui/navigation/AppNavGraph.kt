@@ -95,8 +95,11 @@ fun AppNavGraph() {
 
             composable(NavRoutes.HighlightRecall.route) {
                 HighlightRecallScreen(
-                    onBack  = { navController.popBackStack() },
-                    onRated = { /* stay on screen — next highlight loads automatically */ }
+                    onBack         = { navController.popBackStack() },
+                    onRated        = {},
+                    onOpenQuestion = { qId ->
+                        navController.navigate(NavRoutes.QuestionExplanation.create(qId))
+                    }
                 )
             }
 

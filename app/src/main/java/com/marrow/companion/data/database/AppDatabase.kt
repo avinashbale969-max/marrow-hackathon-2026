@@ -24,7 +24,7 @@ import com.marrow.companion.data.database.entities.PausedQuizEntity
         PausedQuizEntity::class
     ],
 
-    version = 18,
+    version = 20,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {

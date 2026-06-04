@@ -125,7 +125,7 @@ fun ImageNotesScreen(
                 text                = notesContent,
                 highlights          = highlights,
                 notes               = tagNotes,
-                onHighlight         = { text, color ->
+                onHighlight         = { text, color, _ ->
                     viewModel.addHighlight(lessonKey, text, color)
                 },
                 onTagSelected       = { sel -> pendingTagQuote = sel; showTagDialog = true },
