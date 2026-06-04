@@ -71,6 +71,7 @@ fun HighlightableText(
     val coroutineScope   = rememberCoroutineScope()
     val density          = LocalDensity.current
     val view             = LocalView.current
+    val focusManager     = androidx.compose.ui.platform.LocalFocusManager.current
 
     var showPicker        by remember { mutableStateOf(false) }
     var userDismissed     by remember { mutableStateOf(false) }
@@ -273,7 +274,7 @@ fun HighlightableText(
             Popup(
                 alignment        = Alignment.TopStart,
                 offset           = popupOffset,
-                onDismissRequest = { userDismissed = true; showPicker = false },
+                onDismissRequest = { userDismissed = true; showPicker = false; focusManager.clearFocus(force = true) },
                 properties       = PopupProperties(focusable = true, dismissOnClickOutside = true)
             ) {
                 Box(modifier = Modifier.width(280.dp)) {
@@ -284,7 +285,7 @@ fun HighlightableText(
                             .size(26.dp)
                             .clip(CircleShape)
                             .background(Color(0xFF555555))
-                            .clickable { userDismissed = true; showPicker = false }
+                            .clickable { userDismissed = true; showPicker = false; focusManager.clearFocus(force = true) }
                             .zIndex(1f),
                         contentAlignment = Alignment.Center
                     ) {
