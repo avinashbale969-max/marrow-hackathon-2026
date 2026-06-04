@@ -137,6 +137,11 @@ fun QuizScreen(
 
     val answered = state.selectedOptionId != null
 
+    // Feature tip — show once per login session
+    var showFeatureTip by remember {
+        mutableStateOf(!FeatureTipState.explanationTipShown)
+    }
+
     Box(modifier = Modifier.fillMaxSize()) {
         if (showExplanation && answered) {
             // ── Explanation view ──────────────────────────────────────────────
@@ -164,6 +169,16 @@ fun QuizScreen(
             BookmarkScreenshotEffect(
                 bookmarkType = type,
                 onComplete   = { screenshotType = null }
+            )
+        }
+
+        // Feature tip overlay — shown once per login when explanation first appears
+        if (showFeatureTip && showExplanation && answered) {
+            ExplanationFeatureTip(
+                onDismiss = {
+                    FeatureTipState.explanationTipShown = true
+                    showFeatureTip = false
+                }
             )
         }
     }

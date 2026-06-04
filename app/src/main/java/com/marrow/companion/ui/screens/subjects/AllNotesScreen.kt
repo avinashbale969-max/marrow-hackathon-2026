@@ -12,6 +12,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
+import androidx.compose.ui.draw.shadow
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -19,6 +20,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -186,8 +188,32 @@ fun SubjectNotesScreen(
         else viewModel.getNotesWithSubject(subjectId)).collectAsState(initial = emptyList())
     val highlights by (if (isAll) viewModel.getAllHighlightsWithSubject()
         else viewModel.getHighlightsWithSubject(subjectId)).collectAsState(initial = emptyList())
+    val tags       by (if (isAll) viewModel.getAllTagsWithSubject()
+        else viewModel.getTagsWithSubject(subjectId)).collectAsState(initial = emptyList())
 
-    var selectedTab by remember { mutableIntStateOf(0) }
+    var selectedTab  by remember { mutableIntStateOf(0) }
+    var searchQuery  by remember { mutableStateOf("") }
+    var showSearch   by remember { mutableStateOf(false) }
+
+    // Filtered lists based on search query
+    val q = searchQuery.trim().lowercase()
+    val filteredNotes = if (q.isEmpty()) notes else notes.filter {
+        it.text.lowercase().contains(q) ||
+        it.attachedQuote?.lowercase()?.contains(q) == true ||
+        it.subjectName.lowercase().contains(q) ||
+        it.topicName?.lowercase()?.contains(q) == true
+    }
+    val filteredHighlights = if (q.isEmpty()) highlights else highlights.filter {
+        it.text.lowercase().contains(q) ||
+        it.subjectName.lowercase().contains(q) ||
+        it.topicName?.lowercase()?.contains(q) == true
+    }
+    val filteredTags = if (q.isEmpty()) tags else tags.filter {
+        it.text.lowercase().contains(q) ||
+        it.attachedQuote?.lowercase()?.contains(q) == true ||
+        it.subjectName.lowercase().contains(q) ||
+        it.topicName?.lowercase()?.contains(q) == true
+    }
 
     Scaffold(
         topBar = {
@@ -196,6 +222,11 @@ fun SubjectNotesScreen(
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, null)
+                    }
+                },
+                actions = {
+                    IconButton(onClick = { showSearch = !showSearch; if (!showSearch) searchQuery = "" }) {
+                        Icon(Icons.Filled.Search, null, tint = Color.White)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -209,19 +240,105 @@ fun SubjectNotesScreen(
     ) { padding ->
         Column(modifier = Modifier.fillMaxSize().padding(padding)) {
 
-            // Tabs
+            // Search bar — shown below header when active
+            if (showSearch) {
+                OutlinedTextField(
+                    value         = searchQuery,
+                    onValueChange = { searchQuery = it },
+                    placeholder   = { Text("Search notes, highlights, tags…",
+                        fontSize = 14.sp, color = Color(0xFF999999)) },
+                    leadingIcon   = { Icon(Icons.Filled.Search, null, tint = Teal,
+                        modifier = Modifier.size(20.dp)) },
+                    trailingIcon  = if (searchQuery.isNotEmpty()) {{
+                        IconButton(onClick = { searchQuery = "" }) {
+                            Icon(Icons.Filled.Close, null, tint = Color(0xFF999999),
+                                modifier = Modifier.size(18.dp))
+                        }
+                    }} else null,
+                    singleLine    = true,
+                    shape         = RoundedCornerShape(10.dp),
+                    modifier      = Modifier
+                        .fillMaxWidth()
+                        .background(Color.White)
+                        .padding(horizontal = 12.dp, vertical = 8.dp),
+                    colors        = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor   = Teal,
+                        unfocusedBorderColor = Color(0xFFE0E0E0)
+                    )
+                )
+            }
+
+            // When searching → hide tabs, show unified results across all types
+            if (q.isNotEmpty()) {
+                val totalResults = filteredNotes.size + filteredHighlights.size + filteredTags.size
+                if (totalResults == 0) {
+                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Icon(Icons.Filled.Search, null,
+                                tint = Color(0xFFCCCCCC), modifier = Modifier.size(48.dp))
+                            Text("No results for \"$q\"", color = Color.Gray,
+                                fontWeight = FontWeight.Medium)
+                            Text("Try a different keyword", color = Color(0xFFAAAAAA), fontSize = 13.sp)
+                        }
+                    }
+                } else {
+                    // Result count summary
+                    Row(
+                        modifier = Modifier.fillMaxWidth().background(Color.White)
+                            .padding(horizontal = 16.dp, vertical = 8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text("$totalResults results", fontSize = 12.sp, color = Color.Gray)
+                        if (filteredNotes.isNotEmpty())
+                            ResultBadge("${filteredNotes.size} Notes", Teal)
+                        if (filteredHighlights.isNotEmpty())
+                            ResultBadge("${filteredHighlights.size} Highlights", GreenHL)
+                        if (filteredTags.isNotEmpty())
+                            ResultBadge("${filteredTags.size} Tags", Color(0xFFE53935))
+                    }
+                    HorizontalDivider(color = Color(0xFFEEEEEE))
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
+                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        // Tags first (most specific search target)
+                        if (filteredTags.isNotEmpty()) {
+                            item { SearchSectionHeader("🏷 Tags (${filteredTags.size})") }
+                            items(filteredTags, key = { "t${it.id}" }) { tag ->
+                                TagCard(tag, showSubject = isAll)
+                            }
+                        }
+                        if (filteredNotes.isNotEmpty()) {
+                            item { SearchSectionHeader("✎ Notes (${filteredNotes.size})") }
+                            items(filteredNotes, key = { "n${it.id}" }) { note ->
+                                NoteCard(note, showSubject = isAll)
+                            }
+                        }
+                        if (filteredHighlights.isNotEmpty()) {
+                            item { SearchSectionHeader("Highlights (${filteredHighlights.size})") }
+                            items(filteredHighlights, key = { "h${it.id}" }) { hl ->
+                                HighlightCard(hl, showSubject = isAll)
+                            }
+                        }
+                    }
+                }
+            } else {
+            // Normal tabs when not searching — Notes | Highlights only
             Row(modifier = Modifier.fillMaxWidth().background(Color.White)) {
                 NotesDetailTab("Notes",      notes.size,      selectedTab == 0, Modifier.weight(1f)) { selectedTab = 0 }
                 NotesDetailTab("Highlights", highlights.size, selectedTab == 1, Modifier.weight(1f)) { selectedTab = 1 }
             }
             HorizontalDivider(color = Color(0xFFEEEEEE))
 
-            val isEmpty = if (selectedTab == 0) notes.isEmpty() else highlights.isEmpty()
-            if (isEmpty) {
+            val currentItems = if (selectedTab == 0) notes else highlights
+            val emptyMsg = if (selectedTab == 0) "No notes yet" else "No highlights yet"
+
+            if (currentItems.isEmpty()) {
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text(if (selectedTab == 0) "No notes yet" else "No highlights yet",
-                        color = Color.Gray, textAlign = TextAlign.Center,
-                        modifier = Modifier.padding(32.dp))
+                    Text(emptyMsg, color = Color.Gray, modifier = Modifier.padding(32.dp))
                 }
             } else {
                 LazyColumn(
@@ -230,14 +347,30 @@ fun SubjectNotesScreen(
                     verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     if (selectedTab == 0) {
-                        items(notes, key = { it.id }) { note -> NoteCard(note, showSubject = isAll) }
+                        items(notes, key = { it.id }) { NoteCard(it, showSubject = isAll) }
                     } else {
-                        items(highlights, key = { it.id }) { hl -> HighlightCard(hl, showSubject = isAll) }
+                        items(highlights, key = { it.id }) { HighlightCard(it, showSubject = isAll) }
                     }
                 }
             }
+            } // end else (not searching)
         }
     }
+}
+
+@Composable
+private fun ResultBadge(label: String, color: Color) {
+    Box(Modifier.clip(RoundedCornerShape(20.dp)).background(color.copy(alpha = 0.12f))
+        .padding(horizontal = 8.dp, vertical = 2.dp)) {
+        Text(label, fontSize = 11.sp, color = color, fontWeight = FontWeight.SemiBold)
+    }
+}
+
+@Composable
+private fun SearchSectionHeader(title: String) {
+    Text(title, fontSize = 12.sp, fontWeight = FontWeight.SemiBold,
+        color = Color(0xFF888888),
+        modifier = Modifier.padding(top = 4.dp, bottom = 2.dp))
 }
 
 @Composable
@@ -321,6 +454,40 @@ private fun NoteCard(note: NoteWithSubject, showSubject: Boolean) {
                 topicName   = note.topicName,
                 color       = Color(0xFF888888)
             )
+        }
+    }
+}
+
+@Composable
+private fun TagCard(tag: NoteWithSubject, showSubject: Boolean) {
+    Card(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(10.dp),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFFFFFDE7)),
+        elevation = CardDefaults.cardElevation(0.dp)) {
+        Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp),
+                verticalAlignment = Alignment.CenterVertically) {
+                // Red flag indicator
+                Box(Modifier.size(0.dp), contentAlignment = Alignment.Center) {}
+                androidx.compose.foundation.Canvas(Modifier.size(12.dp)) {
+                    val path = androidx.compose.ui.graphics.Path().apply {
+                        moveTo(0f, 0f); lineTo(size.width, size.height * 0.4f)
+                        lineTo(0f, size.height * 0.8f); close()
+                    }
+                    drawPath(path, Color(0xFFE53935))
+                }
+                Text("Tag", fontSize = 11.sp, color = Color(0xFFE53935),
+                    fontWeight = FontWeight.SemiBold)
+            }
+            tag.attachedQuote?.let { quote ->
+                Text("\"${quote.take(120)}\"", fontSize = 12.sp,
+                    color = Color(0xFF8D6E00), fontStyle = FontStyle.Italic)
+                HorizontalDivider(color = Color(0xFFF9A825).copy(alpha = 0.3f))
+            }
+            Text(tag.text, fontSize = 14.sp, lineHeight = 20.sp, color = Color(0xFF5D4037),
+                fontWeight = FontWeight.Medium)
+            SubjectTopicLabel(subjectName = tag.subjectName, topicName = tag.topicName,
+                color = Color(0xFF888888))
         }
     }
 }

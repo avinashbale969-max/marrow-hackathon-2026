@@ -18,6 +18,32 @@ interface NoteDao {
     @Query("SELECT * FROM notes WHERE questionId = :questionId AND tag = 'TAG' ORDER BY createdAt DESC")
     fun getTagsForQuestion(questionId: Long): Flow<List<NoteEntity>>
 
+    @Query("""
+        SELECT n.id as id, n.questionId as questionId, n.text as text,
+               n.tag as tag, n.attachedQuote as attachedQuote,
+               n.createdAt as createdAt, s.name as subjectName, t.name as topicName
+        FROM notes n
+        INNER JOIN questions q ON n.questionId = q.id
+        INNER JOIN subjects s ON q.subjectId = s.id
+        LEFT JOIN topics t ON q.topicId = t.id
+        WHERE n.tag = 'TAG'
+        ORDER BY s.name ASC, n.createdAt DESC
+    """)
+    fun getAllTagsWithSubjectName(): Flow<List<NoteWithSubject>>
+
+    @Query("""
+        SELECT n.id as id, n.questionId as questionId, n.text as text,
+               n.tag as tag, n.attachedQuote as attachedQuote,
+               n.createdAt as createdAt, s.name as subjectName, t.name as topicName
+        FROM notes n
+        INNER JOIN questions q ON n.questionId = q.id
+        INNER JOIN subjects s ON q.subjectId = s.id
+        LEFT JOIN topics t ON q.topicId = t.id
+        WHERE q.subjectId = :subjectId AND n.tag = 'TAG'
+        ORDER BY n.createdAt DESC
+    """)
+    fun getTagsWithSubjectName(subjectId: Long): Flow<List<NoteWithSubject>>
+
     @Query("SELECT * FROM notes WHERE questionId = :questionId AND tag = 'SUMMARY' LIMIT 1")
     fun getSummaryForQuestion(questionId: Long): Flow<NoteEntity?>
 

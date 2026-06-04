@@ -42,6 +42,9 @@ interface HighlightDao {
     @Query("DELETE FROM highlights WHERE id = :id")
     suspend fun deleteById(id: Long)
 
+    @Query("DELETE FROM highlights WHERE questionId = :questionId AND text = :text")
+    suspend fun deleteByQuestionAndText(questionId: Long, text: String)
+
     @Query("SELECT COUNT(*) FROM highlights WHERE color = 'GREEN'")
     fun getGreenCount(): Flow<Int>
 

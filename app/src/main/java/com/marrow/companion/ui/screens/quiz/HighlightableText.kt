@@ -74,8 +74,10 @@ fun HighlightableText(
     var showPicker        by remember { mutableStateOf(false) }
     var pendingCopy       by remember { mutableStateOf<(() -> Unit)?>(null) }
     var lastHighlightText by remember { mutableStateOf("") }
-    var popupOffset       by remember { mutableStateOf(IntOffset.Zero) }
-    val boxWindowPos      = remember { mutableStateOf(IntOffset.Zero) }
+    var popupOffset  by remember { mutableStateOf(IntOffset.Zero) }
+    // Store LayoutCoordinates so positionInWindow() is called FRESH inside showMenu
+    // (fresh call walks the transform chain including current scroll transform)
+    val boxCoords = remember { mutableStateOf<androidx.compose.ui.layout.LayoutCoordinates?>(null) }
 
     var textLayout   by remember { mutableStateOf<TextLayoutResult?>(null) }
     var editingNote  by remember { mutableStateOf<NoteEntity?>(null) }
@@ -106,10 +108,11 @@ fun HighlightableText(
                 val toolbarW = with(density) { 280.dp.toPx() }.toInt()
                 val toolbarH = with(density) { 106.dp.toPx() }.toInt()
                 val caret    = with(density) { 10.dp.toPx() }.toInt()
-                // Compensate for scroll: boxWindowPos is stale after scrolling
-                val scrollY  = scrollOffsetPx?.invoke() ?: 0
-                val boxX     = boxWindowPos.value.x
-                val boxY     = boxWindowPos.value.y - scrollY  // adjusted for current scroll
+                // Get FRESH box position — positionInWindow() walks the transform chain,
+                // which includes the current scroll transform (unlike the stale cached value)
+                val freshPos = boxCoords.value?.positionInWindow()
+                val boxX     = freshPos?.x?.toInt() ?: 0
+                val boxY     = freshPos?.y?.toInt() ?: 0
                 val cx       = ((rect.left + rect.right) / 2f).toInt()
                 val x        = (cx - boxX - toolbarW / 2).coerceIn(0, view.width - toolbarW - 8)
                 val y        = (rect.top.toInt() - boxY - toolbarH - caret - 8).coerceAtLeast(0)
@@ -164,8 +167,7 @@ fun HighlightableText(
 
     Box(
         modifier = modifier.onGloballyPositioned { coords ->
-            val pos = coords.positionInWindow()
-            boxWindowPos.value = IntOffset(pos.x.toInt(), pos.y.toInt())
+            boxCoords.value = coords   // keep the live reference, not just a snapshot
         }
     ) {
         // ── Explanation text — pushed right when stickies exist ───────────

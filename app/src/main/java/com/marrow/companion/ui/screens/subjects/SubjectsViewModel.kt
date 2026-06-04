@@ -92,6 +92,8 @@ class SubjectsViewModel @Inject constructor(
     fun getHighlightsForSubject(subjectId: Long)  = highlightDao.getForSubject(subjectId)
     fun getNotesWithSubject(subjectId: Long)      = noteDao.getForSubjectWithName(subjectId)
     fun getHighlightsWithSubject(subjectId: Long) = highlightDao.getForSubjectWithName(subjectId)
+    fun getAllTagsWithSubject()                    = noteDao.getAllTagsWithSubjectName()
+    fun getTagsWithSubject(subjectId: Long)       = noteDao.getTagsWithSubjectName(subjectId)
 
     fun getTopicsForSubject(subjectId: Long): Flow<List<TopicEntity>> =
         topicDao.getTopicsForSubject(subjectId)

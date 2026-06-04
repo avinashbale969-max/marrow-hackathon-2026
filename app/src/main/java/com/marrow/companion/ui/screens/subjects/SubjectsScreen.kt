@@ -3,6 +3,7 @@ package com.marrow.companion.ui.screens.subjects
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -65,20 +66,55 @@ fun SubjectsScreen(
     val notesCount     by viewModel.notesCount.collectAsState()
     val highlightsCount by viewModel.highlightsCount.collectAsState()
 
+    var showSearch  by remember { mutableStateOf(false) }
+    var searchQuery by remember { mutableStateOf("") }
+
+    // Filter subjects by search query
+    val filteredSubjects = remember(state.subjects, searchQuery) {
+        if (searchQuery.isBlank()) state.subjects
+        else state.subjects.filter { it.subject.name.contains(searchQuery, ignoreCase = true) }
+    }
+
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
                 title = {
-                    Text("QBank Edition", fontWeight = FontWeight.Bold, fontSize = 20.sp)
+                    if (showSearch) {
+                        // Search field replaces title
+                        BasicTextField(
+                            value         = searchQuery,
+                            onValueChange = { searchQuery = it },
+                            singleLine    = true,
+                            textStyle     = androidx.compose.ui.text.TextStyle(
+                                color    = Color.White,
+                                fontSize = 16.sp
+                            ),
+                            cursorBrush   = androidx.compose.ui.graphics.SolidColor(Color.White),
+                            modifier      = Modifier.fillMaxWidth().padding(horizontal = 4.dp),
+                            decorationBox = { inner ->
+                                if (searchQuery.isEmpty()) {
+                                    Text("Search subjects…", color = Color.White.copy(alpha = 0.6f),
+                                        fontSize = 16.sp)
+                                }
+                                inner()
+                            }
+                        )
+                    } else {
+                        Text("QBank Edition", fontWeight = FontWeight.Bold, fontSize = 20.sp)
+                    }
                 },
                 navigationIcon = {
-                    IconButton(onClick = {}) {
-                        Icon(Icons.Filled.Menu, contentDescription = "Menu")
+                    IconButton(onClick = {
+                        if (showSearch) { showSearch = false; searchQuery = "" }
+                    }) {
+                        if (showSearch) Icon(Icons.Filled.Close, null, tint = Color.White)
+                        else Icon(Icons.Filled.Menu, null, tint = Color.White)
                     }
                 },
                 actions = {
-                    IconButton(onClick = {}) {
-                        Icon(Icons.Filled.Search, contentDescription = "Search")
+                    IconButton(onClick = { showSearch = true }) {
+                        Icon(Icons.Filled.Search, contentDescription = "Search",
+                            tint = Color.White)
                     }
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
@@ -102,7 +138,7 @@ fun SubjectsScreen(
             modifier = Modifier.fillMaxSize().padding(padding),
             contentPadding = PaddingValues(bottom = 16.dp)
         ) {
-            // QBank Tracker
+            // QBank Tracker (hide while searching)
             item {
                 Spacer(Modifier.height(8.dp))
                 TrackerRow(
@@ -147,8 +183,8 @@ fun SubjectsScreen(
                 Spacer(Modifier.height(16.dp))
             }
 
-            // Subject cards
-            items(state.subjects) { item ->
+            // Subject cards (filtered when searching)
+            items(filteredSubjects) { item ->
                 SubjectCard(
                     subject = item.subject,
                     attempted = item.attempted,
