@@ -23,7 +23,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInWindow
+import android.content.ClipboardManager as AndroidClipboardManager
+import android.content.Context
+import androidx.compose.ui.platform.ClipboardManager
 import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalTextToolbar
 import androidx.compose.ui.platform.LocalView
@@ -67,7 +71,31 @@ fun HighlightableText(
     onTranslateSelected: OnTranslateSelected? = null,
     modifier: Modifier = Modifier
 ) {
-    val clipboardManager = LocalClipboardManager.current
+    // Internal clipboard — captures selected text WITHOUT writing to system clipboard
+    val internalClip = remember { mutableStateOf<androidx.compose.ui.text.AnnotatedString?>(null) }
+    val fakeClipboard: ClipboardManager = remember {
+        object : ClipboardManager {
+            override fun getText() = internalClip.value
+            override fun setText(s: androidx.compose.ui.text.AnnotatedString) { internalClip.value = s }
+        }
+    }
+    val clipboardManager = fakeClipboard  // never touches system clipboard
+
+    // Block Android system clipboard — clears any text written while explanation is visible
+    val context = LocalContext.current
+    DisposableEffect(Unit) {
+        val sysClipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as? AndroidClipboardManager
+        val listener = AndroidClipboardManager.OnPrimaryClipChangedListener {
+            // Only clear if there's actual text (prevents infinite loop from clearPrimaryClip itself)
+            val text = sysClipboard?.primaryClip?.getItemAt(0)?.text?.toString() ?: ""
+            if (text.isNotEmpty()) {
+                sysClipboard?.clearPrimaryClip()
+            }
+        }
+        sysClipboard?.addPrimaryClipChangedListener(listener)
+        onDispose { sysClipboard?.removePrimaryClipChangedListener(listener) }
+    }
+
     val coroutineScope   = rememberCoroutineScope()
     val density          = LocalDensity.current
     val view             = LocalView.current
@@ -175,7 +203,10 @@ fun HighlightableText(
         }
     ) {
         // ── Explanation text — pushed right when stickies exist ───────────
-        CompositionLocalProvider(LocalTextToolbar provides toolbar) {
+        CompositionLocalProvider(
+            LocalTextToolbar  provides toolbar,
+            LocalClipboardManager provides fakeClipboard   // intercept copy → no system clipboard
+        ) {
             SelectionContainer {
                 Text(
                     text       = annotated,
@@ -344,6 +375,7 @@ fun HighlightableText(
                                         pendingCopy?.invoke()
                                         delay(80)
                                         val selected = clipboardManager.getText()?.text?.trim() ?: ""
+                                        clipboardManager.setText(androidx.compose.ui.text.AnnotatedString(""))
                                         if (selected.isNotBlank()) onTagSelected?.invoke(selected)
                                         showPicker = false
                                     }
@@ -353,6 +385,7 @@ fun HighlightableText(
                                         pendingCopy?.invoke()
                                         delay(80)
                                         val selected = clipboardManager.getText()?.text?.trim() ?: ""
+                                        clipboardManager.setText(androidx.compose.ui.text.AnnotatedString(""))
                                         if (selected.isNotBlank()) onTranslateSelected?.invoke(selected)
                                         showPicker = false
                                     }
@@ -493,9 +526,10 @@ private fun doHighlight(
     onDone: (String) -> Unit
 ) {
     scope.launch {
-        pendingCopy?.invoke()
+        pendingCopy?.invoke()       // writes to fakeClipboard — never system clipboard
         delay(80)
         val selected = clipboardManager.getText()?.text?.trim() ?: ""
+        clipboardManager.setText(androidx.compose.ui.text.AnnotatedString(""))  // clear immediately
         if (selected.isNotBlank()) onDone(selected)
     }
 }
