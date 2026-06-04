@@ -58,6 +58,8 @@ fun LoginScreen(onLoginSuccess: () -> Unit) {
     val scope        = rememberCoroutineScope()
 
     LaunchedEffect(Unit) {
+        // Reset all per-session tips on each login screen visit
+        com.marrow.companion.ui.screens.quiz.FeatureTipState.explanationTipShown = false
         delay(100)
         visible = true
     }

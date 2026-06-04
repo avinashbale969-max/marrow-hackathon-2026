@@ -210,6 +210,8 @@ class QuizViewModel @Inject constructor(
     fun addHighlight(text: String, color: HighlightColor) {
         val q = _state.value.currentQuestion ?: return
         viewModelScope.launch {
+            // Delete existing highlight with same text (colour update — keep only latest)
+            highlightDao.deleteByQuestionAndText(q.question.id, text)
             highlightDao.insert(HighlightEntity(questionId = q.question.id, text = text, color = color.name))
             loadHighlights(q.question.id)
         }

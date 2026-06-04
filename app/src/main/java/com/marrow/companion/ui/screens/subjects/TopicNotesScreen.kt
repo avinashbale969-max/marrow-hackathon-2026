@@ -21,6 +21,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.compose.material.icons.filled.Delete
 import com.marrow.companion.data.database.entities.HighlightColor
 import com.marrow.companion.data.database.entities.HighlightEntity
 import com.marrow.companion.data.database.entities.NoteEntity
@@ -109,7 +110,10 @@ fun TopicNotesScreen(
                     if (selectedTab == 0) {
                         items(notes) { note -> NoteCard(note) }
                     } else {
-                        items(highlights) { hl -> HighlightCard(hl) }
+                        items(highlights) { hl ->
+                            HighlightCard(hl,
+                                onDelete = { viewModel.deleteHighlight(hl.id) })
+                        }
                     }
                 }
             }
@@ -227,7 +231,16 @@ private fun NoteCard(note: NoteEntity) {
 }
 
 @Composable
-private fun HighlightCard(hl: HighlightEntity) {
+private fun HighlightCard(hl: HighlightEntity, onDelete: (() -> Unit)? = null) {
+    var showConfirm by remember { mutableStateOf(false) }
+    if (showConfirm) {
+        com.marrow.companion.ui.common.ConfirmDeleteDialog(
+            title   = "Delete Highlight?",
+            message = "\"${hl.text.take(60)}\" will be permanently removed.",
+            onConfirm = { onDelete?.invoke() },
+            onDismiss = { showConfirm = false }
+        )
+    }
     val isOrange = hl.color == HighlightColor.ORANGE.name
     val accent   = if (isOrange) OrangeHL else GreenHL
     val bg       = if (isOrange) Color(0xFFFFF8E1) else Color(0xFFE8F5E9)
@@ -240,7 +253,8 @@ private fun HighlightCard(hl: HighlightEntity) {
     ) {
         Row(
             modifier = Modifier.padding(14.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalAlignment = Alignment.Top
         ) {
             Box(
                 Modifier.width(4.dp).heightIn(min = 16.dp)
@@ -253,6 +267,10 @@ private fun HighlightCard(hl: HighlightEntity) {
                 color     = Color(0xFF333333),
                 modifier  = Modifier.weight(1f)
             )
+            if (onDelete != null) {
+                Icon(Icons.Filled.Delete, null, tint = accent.copy(alpha = 0.5f),
+                    modifier = Modifier.size(16.dp).clickable { showConfirm = true })
+            }
         }
     }
 }
