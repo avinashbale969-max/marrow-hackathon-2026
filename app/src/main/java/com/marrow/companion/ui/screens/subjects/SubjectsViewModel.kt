@@ -107,8 +107,9 @@ class SubjectsViewModel @Inject constructor(
     fun getTopicsForSubject(subjectId: Long): Flow<List<TopicEntity>> =
         topicDao.getTopicsForSubject(subjectId)
 
-    fun getNotesForTopic(topicId: Long)      = noteDao.getForTopic(topicId)
-    fun getHighlightsForTopic(topicId: Long) = highlightDao.getForTopic(topicId)
+    fun getNotesForTopic(topicId: Long)              = noteDao.getForTopic(topicId)
+    fun getHighlightsForTopic(topicId: Long)         = highlightDao.getForTopic(topicId)
+    fun getTaggedHighlightIdsForTopic(topicId: Long) = highlightDao.getTaggedHighlightIdsForTopic(topicId)
     fun getBookmarkedForTopic(topicId: Long) = questionDao.getBookmarkedForTopic(topicId)
     fun getBookmarkedForTopic_Subject(subjectId: Long) = questionDao.getBookmarkedForSubject(subjectId)
     fun getBookmarkCountForTopic(topicId: Long) = questionDao.getBookmarkedCountForTopic(topicId)

@@ -42,9 +42,10 @@ fun TopicNotesScreen(
     onMcqClick: (Long) -> Unit = {},
     viewModel: SubjectsViewModel = hiltViewModel()
 ) {
-    val topics     by viewModel.getTopicsForSubject(subjectId).collectAsState(initial = emptyList())
-    val notes      by viewModel.getNotesForTopic(topicId).collectAsState(initial = emptyList())
-    val highlights by viewModel.getHighlightsForTopic(topicId).collectAsState(initial = emptyList())
+    val topics          by viewModel.getTopicsForSubject(subjectId).collectAsState(initial = emptyList())
+    val notes           by viewModel.getNotesForTopic(topicId).collectAsState(initial = emptyList())
+    val highlights      by viewModel.getHighlightsForTopic(topicId).collectAsState(initial = emptyList())
+    val taggedIds       by viewModel.getTaggedHighlightIdsForTopic(topicId).collectAsState(initial = emptyList())
 
     val topicName  = topics.find { it.id == topicId }?.name ?: "My Notes"
 
@@ -90,6 +91,7 @@ fun TopicNotesScreen(
                 ) {
                     items(highlights) { hl ->
                         HighlightCard(hl,
+                            hasTag     = hl.id in taggedIds,
                             onDelete   = { viewModel.deleteHighlight(hl.id) },
                             onMcqClick = onMcqClick)
                     }
@@ -209,7 +211,7 @@ private fun NoteCard(note: NoteEntity) {
 }
 
 @Composable
-private fun HighlightCard(hl: HighlightEntity, onDelete: (() -> Unit)? = null, onMcqClick: ((Long) -> Unit)? = null) {
+private fun HighlightCard(hl: HighlightEntity, hasTag: Boolean = false, onDelete: (() -> Unit)? = null, onMcqClick: ((Long) -> Unit)? = null) {
     var showConfirm by remember { mutableStateOf(false) }
     if (showConfirm) {
         com.marrow.companion.ui.common.ConfirmDeleteDialog(
@@ -252,6 +254,11 @@ private fun HighlightCard(hl: HighlightEntity, onDelete: (() -> Unit)? = null, o
                     fontWeight = FontWeight.Medium,
                     modifier   = Modifier.weight(1f)
                 )
+                if (hasTag) {
+                    Icon(Icons.Filled.Flag, contentDescription = "Tagged",
+                        tint = Color(0xFFE53935),
+                        modifier = Modifier.size(16.dp).padding(top = 2.dp))
+                }
                 if (onDelete != null) {
                     Icon(Icons.Filled.Delete, null, tint = accent.copy(alpha = 0.6f),
                         modifier = Modifier.size(17.dp).clickable { showConfirm = true })

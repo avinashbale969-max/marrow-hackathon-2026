@@ -40,6 +40,7 @@ private val OrangeHL    = Color(0xFFFFA726)
 fun MyNotesSheet(
     highlights: List<HighlightEntity>,
     notes: List<NoteEntity>,
+    taggedHighlightIds: Set<Long> = emptySet(),
     bookmarkType: String? = null,   // kept for API compat, unused
     onDeleteHighlight: (HighlightEntity) -> Unit,
     onDeleteNote: (NoteEntity) -> Unit,
@@ -110,12 +111,13 @@ fun MyNotesSheet(
             // ── Highlights only (Notes tab removed) ───────────────────────────
             run {
                 HighlightsTab(
-                    highlights    = highlights,
-                    colorFilter   = hlColorFilter,
-                    onFilterColor = { hlColorFilter = if (hlColorFilter == it) null else it },
-                    onDelete      = onDeleteHighlight,
-                    onAddNote     = { quote -> pendingQuote = quote; showNoteInput = true },
-                    onMcqClick    = onMcqClick
+                    highlights         = highlights,
+                    taggedHighlightIds = taggedHighlightIds,
+                    colorFilter        = hlColorFilter,
+                    onFilterColor      = { hlColorFilter = if (hlColorFilter == it) null else it },
+                    onDelete           = onDeleteHighlight,
+                    onAddNote          = { quote -> pendingQuote = quote; showNoteInput = true },
+                    onMcqClick         = onMcqClick
                 )
             }
         }
@@ -177,6 +179,7 @@ private fun NotesTab(
 @Composable
 private fun HighlightsTab(
     highlights: List<HighlightEntity>,
+    taggedHighlightIds: Set<Long> = emptySet(),
     colorFilter: String?,
     onFilterColor: (String) -> Unit,
     onDelete: (HighlightEntity) -> Unit,
@@ -212,6 +215,7 @@ private fun HighlightsTab(
                 items(filtered) { hl ->
                     HighlightCard(
                         highlight  = hl,
+                        hasTag     = hl.id in taggedHighlightIds,
                         onDelete   = { onDelete(hl) },
                         onAddNote  = { onAddNote(hl.text) },
                         onMcqClick = onMcqClick
@@ -361,6 +365,7 @@ fun NoteCard(
 @Composable
 fun HighlightCard(
     highlight: HighlightEntity,
+    hasTag: Boolean = false,
     onDelete: () -> Unit,
     onAddNote: (() -> Unit)? = null,
     onMcqClick: ((Long) -> Unit)? = null
@@ -396,6 +401,14 @@ fun HighlightCard(
                     horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     Box(Modifier.size(10.dp).clip(CircleShape).background(accentColor))
                     Text(highlight.color.lowercase(), fontSize = 11.sp, color = Color.Gray)
+                    if (hasTag) {
+                        Icon(
+                            imageVector = Icons.Filled.Flag,
+                            contentDescription = "Tagged",
+                            tint = Color(0xFFE53935),
+                            modifier = Modifier.size(14.dp)
+                        )
+                    }
                 }
                 Row(verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(8.dp)) {

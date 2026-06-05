@@ -395,15 +395,16 @@ private fun ExplanationScreen(
     // My Notes bottom sheet
     if (showNotesSheet) {
         MyNotesSheet(
-            highlights        = state.highlights,
-            notes             = state.notes,
-            bookmarkType      = q.question.bookmarkType,
-            onDeleteHighlight = { viewModel.deleteHighlight(it) },
-            onDeleteNote      = { viewModel.deleteNote(it) },
-            onAddNote         = { text, tag, quote -> viewModel.addNote(text, tag, quote) },
-            onEditNote        = { note, text, tag -> viewModel.updateNote(note, text, tag) },
-            onMcqClick        = onMcqClick,
-            onDismiss         = { showNotesSheet = false }
+            highlights           = state.highlights,
+            notes                = state.notes,
+            taggedHighlightIds   = state.taggedHighlightIds,
+            bookmarkType         = q.question.bookmarkType,
+            onDeleteHighlight    = { viewModel.deleteHighlight(it) },
+            onDeleteNote         = { viewModel.deleteNote(it) },
+            onAddNote            = { text, tag, quote -> viewModel.addNote(text, tag, quote) },
+            onEditNote           = { note, text, tag -> viewModel.updateNote(note, text, tag) },
+            onMcqClick           = onMcqClick,
+            onDismiss            = { showNotesSheet = false }
         )
     }
 

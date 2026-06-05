@@ -737,6 +737,11 @@ private fun HighlightCard(
                 Text("\"${hl.text}\"", fontSize = 14.sp, lineHeight = 22.sp,
                     fontWeight = FontWeight.Medium,
                     color = Color(0xFF1A1A1A), modifier = Modifier.weight(1f))
+                if (hl.hasTag) {
+                    Icon(Icons.Filled.Flag, contentDescription = "Tagged",
+                        tint = Color(0xFFE53935),
+                        modifier = Modifier.size(16.dp).padding(top = 2.dp))
+                }
                 if (onDelete != null) {
                     Icon(Icons.Filled.Delete, null, tint = accent.copy(alpha = 0.6f),
                         modifier = Modifier.size(17.dp).padding(top = 2.dp)

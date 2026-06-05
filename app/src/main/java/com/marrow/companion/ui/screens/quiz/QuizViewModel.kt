@@ -38,6 +38,7 @@ data class QuizUiState(
     val optionStats: Map<Long, Int> = emptyMap(),
     val highlights: List<HighlightEntity> = emptyList(),
     val notes: List<NoteEntity> = emptyList(),
+    val taggedHighlightIds: Set<Long> = emptySet(),
     val answeredMap: Map<Int, Boolean> = emptyMap(),   // index → wasCorrect
     val reviewReady: Boolean = false,
     val reviewBookmarked: List<QuestionWithOptions> = emptyList(),
@@ -128,6 +129,7 @@ class QuizViewModel @Inject constructor(
             questions.getOrNull(startIndex)?.question?.id?.let { qId ->
                 loadHighlights(qId)
                 loadNotes(qId)
+                loadTaggedHighlightIds(qId)
             }
             startTimer()
         }
@@ -307,6 +309,7 @@ class QuizViewModel @Inject constructor(
 
     private var highlightsJob: kotlinx.coroutines.Job? = null
     private var notesJob: kotlinx.coroutines.Job? = null
+    private var taggedHlJob: kotlinx.coroutines.Job? = null
 
     private fun loadHighlights(questionId: Long) {
         highlightsJob?.cancel()
@@ -322,6 +325,15 @@ class QuizViewModel @Inject constructor(
         notesJob = viewModelScope.launch {
             noteDao.getForQuestion(questionId).collect { list ->
                 _state.update { it.copy(notes = list) }
+            }
+        }
+    }
+
+    private fun loadTaggedHighlightIds(questionId: Long) {
+        taggedHlJob?.cancel()
+        taggedHlJob = viewModelScope.launch {
+            highlightDao.getTaggedHighlightIdsForQuestion(questionId).collect { ids ->
+                _state.update { it.copy(taggedHighlightIds = ids.toSet()) }
             }
         }
     }
@@ -356,6 +368,7 @@ class QuizViewModel @Inject constructor(
         _state.value.questions.getOrNull(nextIndex)?.question?.id?.let { qId ->
             loadHighlights(qId)
             loadNotes(qId)
+            loadTaggedHighlightIds(qId)
         }
         startTimer()
     }

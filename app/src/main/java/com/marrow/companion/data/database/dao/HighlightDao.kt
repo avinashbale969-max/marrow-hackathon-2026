@@ -95,7 +95,12 @@ interface HighlightDao {
     @Query("""
         SELECT h.id as id, h.questionId as questionId, h.text as text,
                h.color as color, h.createdAt as createdAt,
-               s.name as subjectName, t.name as topicName
+               s.name as subjectName, t.name as topicName,
+               (EXISTS (SELECT 1 FROM notes n
+                        WHERE n.questionId = h.questionId
+                          AND n.tag = 'TAG'
+                          AND (n.attachedQuote LIKE h.text || '%'
+                               OR h.text LIKE n.attachedQuote || '%'))) as hasTag
         FROM highlights h
         INNER JOIN questions q ON h.questionId = q.id
         INNER JOIN subjects s ON q.subjectId = s.id
@@ -107,7 +112,12 @@ interface HighlightDao {
     @Query("""
         SELECT h.id as id, h.questionId as questionId, h.text as text,
                h.color as color, h.createdAt as createdAt,
-               s.name as subjectName, t.name as topicName
+               s.name as subjectName, t.name as topicName,
+               (EXISTS (SELECT 1 FROM notes n
+                        WHERE n.questionId = h.questionId
+                          AND n.tag = 'TAG'
+                          AND (n.attachedQuote LIKE h.text || '%'
+                               OR h.text LIKE n.attachedQuote || '%'))) as hasTag
         FROM highlights h
         INNER JOIN questions q ON h.questionId = q.id
         INNER JOIN subjects s ON q.subjectId = s.id
@@ -116,6 +126,30 @@ interface HighlightDao {
         ORDER BY h.createdAt DESC
     """)
     fun getForSubjectWithName(subjectId: Long): Flow<List<HighlightWithSubject>>
+
+    // Flag a highlight if a TAG note's text is a prefix of (or prefixed by) the highlight text
+    @Query("""
+        SELECT h.id FROM highlights h
+        WHERE h.questionId = :questionId
+          AND EXISTS (SELECT 1 FROM notes n
+                      WHERE n.questionId = :questionId
+                        AND n.tag = 'TAG'
+                        AND (n.attachedQuote LIKE h.text || '%'
+                             OR h.text LIKE n.attachedQuote || '%'))
+    """)
+    fun getTaggedHighlightIdsForQuestion(questionId: Long): Flow<List<Long>>
+
+    @Query("""
+        SELECT DISTINCT h.id FROM highlights h
+        INNER JOIN questions q ON h.questionId = q.id
+        WHERE q.topicId = :topicId
+          AND EXISTS (SELECT 1 FROM notes n
+                      WHERE n.questionId = h.questionId
+                        AND n.tag = 'TAG'
+                        AND (n.attachedQuote LIKE h.text || '%'
+                             OR h.text LIKE n.attachedQuote || '%'))
+    """)
+    fun getTaggedHighlightIdsForTopic(topicId: Long): Flow<List<Long>>
 }
 
 data class SubjectHighlightCount(val subjectId: Long, val count: Int)
@@ -141,5 +175,6 @@ data class HighlightWithSubject(
     val color: String,
     val createdAt: Long,
     val subjectName: String,
-    val topicName: String? = null
+    val topicName: String? = null,
+    val hasTag: Boolean = false
 )
