@@ -6,6 +6,8 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -65,7 +67,8 @@ fun HighlightableText(
     onDeleteTag: ((NoteEntity) -> Unit)? = null,
     onEditTag: ((NoteEntity, String) -> Unit)? = null,
     onScrollEnabled: ((Boolean) -> Unit)? = null,
-    scrollOffsetPx: (() -> Int)? = null,   // current vertical scroll offset in px
+    scrollOffsetPx: (() -> Int)? = null,
+    onScrollTo: ((Int) -> Unit)? = null,   // restore scroll to a position
     modifier: Modifier = Modifier
 ) {
     val coroutineScope   = rememberCoroutineScope()
@@ -89,6 +92,9 @@ fun HighlightableText(
 
     var showPicker            by remember { mutableStateOf(false) }
     var userDismissed         by remember { mutableStateOf(false) }
+    var savedScrollOffset     by remember { mutableIntStateOf(0) }
+    // Re-enable scroll any time picker hides (covers all showPicker=false paths)
+    LaunchedEffect(showPicker) { if (!showPicker) onScrollEnabled?.invoke(true) }
     var pendingCopy           by remember { mutableStateOf<(() -> Unit)?>(null) }
     var lastHighlightText     by remember { mutableStateOf("") }
     var pendingSelectionOffset by remember { mutableIntStateOf(-1) }
@@ -144,12 +150,18 @@ fun HighlightableText(
                 ) ?: -1
 
                 popupOffset = IntOffset(x, y)
-                if (!userDismissed) showPicker = true
+                if (!userDismissed) {
+                    onScrollEnabled?.invoke(false)
+                    // Restore scroll to pre-selection position (SelectionContainer jumps via bringIntoView)
+                    onScrollTo?.invoke(savedScrollOffset)
+                    showPicker = true
+                }
             }
             override fun hide() {
                 status = TextToolbarStatus.Hidden
                 showPicker = false
-                userDismissed = false   // reset so next selection shows toolbar
+                userDismissed = false
+                onScrollEnabled?.invoke(true)  // re-enable scroll when picker dismissed
             }
         }
     }
@@ -210,6 +222,13 @@ fun HighlightableText(
     Box(
         modifier = modifier
             .onGloballyPositioned { coords -> boxCoords.value = coords }
+            // Save scroll position on every touch-down so we can restore after SelectionContainer jump
+            .pointerInput(Unit) {
+                awaitEachGesture {
+                    awaitFirstDown(requireUnconsumed = false)
+                    savedScrollOffset = scrollOffsetPx?.invoke() ?: 0
+                }
+            }
             .pointerInput(highlights, text) {
                 detectTapGestures { tapOffset ->
                     if (onDeleteHighlight == null) return@detectTapGestures

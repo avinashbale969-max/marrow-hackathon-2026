@@ -3,7 +3,13 @@ package com.marrow.companion.ui.screens.quiz
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import kotlinx.coroutines.delay
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -379,6 +385,7 @@ private fun ExplanationScreen(
     val labels     = listOf("A", "B", "C", "D")
     val isLast     = state.currentIndex + 1 >= state.questions.size
     val scrollState     = rememberScrollState()
+    val coroutineScope  = rememberCoroutineScope()
     var selectionActive by remember { mutableStateOf(false) }
 
     var showNotesSheet         by remember { mutableStateOf(false) }
@@ -419,11 +426,20 @@ private fun ExplanationScreen(
         containerColor = BgGray
     ) { padding ->
 
+        // Swallow scroll events from SelectionContainer so it can't move the page
+        val selectionScrollGuard = remember {
+            object : NestedScrollConnection {
+                override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset =
+                    if (selectionActive) available else Offset.Zero
+            }
+        }
+
         Column(modifier = Modifier.fillMaxSize().padding(padding)) {
 
             // ── Explanation view ──────────────────────────────────────────
             Column(
                 modifier = Modifier.weight(1f)
+                    .nestedScroll(selectionScrollGuard)
                     .verticalScroll(scrollState, enabled = !selectionActive)
                     .padding(horizontal = 20.dp, vertical = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(0.dp)
@@ -581,7 +597,8 @@ private fun ExplanationScreen(
                         attachedQuote = note.attachedQuote)
                 },
                 onScrollEnabled     = { enabled -> selectionActive = !enabled },
-                scrollOffsetPx      = { scrollState.value }
+                scrollOffsetPx      = { scrollState.value },
+                onScrollTo          = { pos -> coroutineScope.launch { scrollState.scrollTo(pos) } }
             )
 
             Spacer(Modifier.height(16.dp))
